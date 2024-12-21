@@ -16,7 +16,14 @@ import TableStatus from "../views/Reception/TableStatus.vue";
 import DishStatus from "../views/Reception/DishStatus.vue";
 import OrderStatus from "../views/Reception/OrderStatus.vue";
 import WaiterUserInfo from "../views/Reception/WaiterUserInfo.vue";
-
+import CustomerLogin from "@/views/CustomerLogin.vue";
+import CustomerLayout from "@/layout/CustomerLayout.vue";
+import Selection from "@/views/Customer/Selection.vue";
+import OrderDishes from "@/views/Customer/OrderDishes.vue";
+import CustomerUserInfo from "@/views/Reception/CustomerUserInfo.vue";
+import Reservation from "@/views/Customer/Reservation.vue";
+import InternalStaffRegister from "@/views/InternalStaffRegister.vue";
+import CustomerRegister from "@/views/CustomerRegister.vue";
 
 // 定义路由规则
 const routes = [
@@ -50,10 +57,15 @@ const routes = [
       { path: "dish-status", name: "DishStatus", component: DishStatus },
       { path: "order-status", name: "OrderStatus", component: OrderStatus },
       { path: "waiter-user", name: "WaiterUserInfo", component: WaiterUserInfo },
-      // { path: "user-management-customers", name: "Customers", component: Customers },
-      // { path: "report-generation-daily", name: "ReportDaily", component: ReportDaily },
-      // { path: "report-generation-monthly", name: "ReportMonthly", component: ReportMonthly },
-      // { path: "report-generation-yearly", name: "ReportYearly", component: ReportYearly },
+    ],
+  },
+
+  {
+    path: "/customer",
+    component: CustomerLayout,
+    children: [
+      { path: "order-dishes", name: "OrderDishes", component: OrderDishes },
+      { path: "customer-user", name: "CustomerUserInfo", component: CustomerUserInfo },
     ],
   },
 
@@ -64,12 +76,36 @@ const routes = [
     component: InternalStaffLogin,
   },
 
+  {
+    path: "/internalStaff-register",
+    name: "InternalStaffRegister",
+    component: InternalStaffRegister,
+  },
 
-  // {
-  //   path: "/other",
-  //   name: "OtherPage",
-  //   component: OtherPage,
-  // },
+  {
+    path: "/customer-login",
+    name: "CustomerLogin",
+    component: CustomerLogin,
+  },
+
+  {
+    path: "/customer-register",
+    name: "CustomerRegister",
+    component: CustomerRegister,
+  },
+
+  {
+    path: "/customer-selection",
+    name: "Selection",
+    component: Selection,
+  },
+
+  {
+    path: "/customer-reservation",
+    name: "Reservation",
+    component: Reservation,
+  },
+
 
   // // 404 页面
   // {
