@@ -1,13 +1,11 @@
 package org.example.controller;
 
 import org.example.pojo.Customer;
+import org.example.pojo.Result;
 import org.example.service.CustomerService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/customers")
@@ -17,46 +15,46 @@ public class CustomerController {
     private CustomerService customerService;
 
     @GetMapping
-    public ResponseEntity<List<Customer>> getAllCustomers() {
-        return new ResponseEntity<>(customerService.getAllCustomers(), HttpStatus.OK);
+    public Result getAllCustomers() {
+        return Result.success(customerService.getAllCustomers());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Customer> getCustomerById(@PathVariable Integer id) {
+    public Result getCustomerById(@PathVariable Integer id) {
         Customer customer = customerService.getCustomerById(id);
         if (customer != null) {
-            return new ResponseEntity<>(customer, HttpStatus.OK);
+            return Result.success(customer);
         } else {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            return Result.error("Not Found");
         }
     }
 
     @PostMapping
-    public ResponseEntity<Customer> createCustomer(@RequestBody Customer customer) {
+    public Result createCustomer(@RequestBody Customer customer) {
         customerService.addCustomer(customer);
-        return new ResponseEntity<>(customer, HttpStatus.CREATED);
+        return Result.success(customer);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Customer> updateCustomer(@PathVariable Integer id, @RequestBody Customer customer) {
+    public Result updateCustomer(@PathVariable Integer id, @RequestBody Customer customer) {
         Customer existingCustomer = customerService.getCustomerById(id);
         if (existingCustomer != null) {
             customer.setCustomerId(id);
             customerService.updateCustomer(customer);
-            return new ResponseEntity<>(customer, HttpStatus.OK);
+            return Result.success(customer);
         } else {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            return Result.error("Not Found");
         }
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteCustomer(@PathVariable Integer id) {
+    public Result deleteCustomer(@PathVariable Integer id) {
         Customer existingCustomer = customerService.getCustomerById(id);
         if (existingCustomer != null) {
             customerService.deleteCustomer(id);
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+            return Result.success();
         } else {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            return Result.error("Not Found");
         }
     }
 }

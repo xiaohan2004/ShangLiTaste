@@ -1,13 +1,10 @@
 package org.example.controller;
 
 import org.example.pojo.Bill;
+import org.example.pojo.Result;
 import org.example.service.BillService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/bills")
@@ -17,46 +14,46 @@ public class BillController {
     private BillService billService;
 
     @GetMapping
-    public ResponseEntity<List<Bill>> getAllBills() {
-        return new ResponseEntity<>(billService.getAllBills(), HttpStatus.OK);
+    public Result getAllBills() {
+        return Result.success(billService.getAllBills());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Bill> getBillById(@PathVariable Integer id) {
+    public Result getBillById(@PathVariable Integer id) {
         Bill bill = billService.getBillById(id);
         if (bill != null) {
-            return new ResponseEntity<>(bill, HttpStatus.OK);
+            return Result.success(bill);
         } else {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            return Result.error("Not Found");
         }
     }
 
     @PostMapping
-    public ResponseEntity<Bill> createBill(@RequestBody Bill bill) {
+    public Result createBill(@RequestBody Bill bill) {
         billService.addBill(bill);
-        return new ResponseEntity<>(bill, HttpStatus.CREATED);
+        return Result.success(bill);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Bill> updateBill(@PathVariable Integer id, @RequestBody Bill bill) {
+    public Result updateBill(@PathVariable Integer id, @RequestBody Bill bill) {
         Bill existingBill = billService.getBillById(id);
         if (existingBill != null) {
             bill.setBillId(id);
             billService.updateBill(bill);
-            return new ResponseEntity<>(bill, HttpStatus.OK);
+            return Result.success(bill);
         } else {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            return Result.error("Not Found");
         }
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteBill(@PathVariable Integer id) {
+    public Result deleteBill(@PathVariable Integer id) {
         Bill existingBill = billService.getBillById(id);
         if (existingBill != null) {
             billService.deleteBill(id);
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+            return Result.success();
         } else {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            return Result.error("Not Found");
         }
     }
 }

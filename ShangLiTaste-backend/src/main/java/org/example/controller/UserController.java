@@ -1,13 +1,10 @@
 package org.example.controller;
 
+import org.example.pojo.Result;
 import org.example.pojo.User;
 import org.example.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/users")
@@ -17,46 +14,46 @@ public class UserController {
     private UserService userService;
 
     @GetMapping
-    public ResponseEntity<List<User>> getAllUsers() {
-        return new ResponseEntity<>(userService.getAllUsers(), HttpStatus.OK);
+    public Result getAllUsers() {
+        return Result.success(userService.getAllUsers());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<User> getUserById(@PathVariable Integer id) {
+    public Result getUserById(@PathVariable Integer id) {
         User user = userService.getUserById(id);
         if (user != null) {
-            return new ResponseEntity<>(user, HttpStatus.OK);
+            return Result.success(user);
         } else {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            return Result.error("Not Found");
         }
     }
 
     @PostMapping
-    public ResponseEntity<User> createUser(@RequestBody User user) {
+    public Result createUser(@RequestBody User user) {
         userService.addUser(user);
-        return new ResponseEntity<>(user, HttpStatus.CREATED);
+        return Result.success(user);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<User> updateUser(@PathVariable Integer id, @RequestBody User user) {
+    public Result updateUser(@PathVariable Integer id, @RequestBody User user) {
         User existingUser = userService.getUserById(id);
         if (existingUser != null) {
             user.setUserId(id);
             userService.updateUser(user);
-            return new ResponseEntity<>(user, HttpStatus.OK);
+            return Result.success(user);
         } else {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            return Result.error("Not Found");
         }
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteUser(@PathVariable Integer id) {
+    public Result deleteUser(@PathVariable Integer id) {
         User existingUser = userService.getUserById(id);
         if (existingUser != null) {
             userService.deleteUser(id);
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+            return Result.success();
         } else {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            return Result.error("Not Found");
         }
     }
 }
