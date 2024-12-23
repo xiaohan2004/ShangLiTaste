@@ -1,13 +1,11 @@
 package org.example.controller;
 
+import org.example.pojo.Result;
 import org.example.pojo.Table;
 import org.example.service.TableService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/tables")
@@ -17,46 +15,46 @@ public class TableController {
     private TableService tableService;
 
     @GetMapping
-    public ResponseEntity<List<Table>> getAllTables() {
-        return new ResponseEntity<>(tableService.getAllTables(), HttpStatus.OK);
+    public Result getAllTables() {
+        return Result.success(tableService.getAllTables());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Table> getTableById(@PathVariable Integer id) {
+    public Result getTableById(@PathVariable Integer id) {
         Table table = tableService.getTableById(id);
         if (table != null) {
-            return new ResponseEntity<>(table, HttpStatus.OK);
+            return Result.success(table);
         } else {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            return Result.error("Not Found");
         }
     }
 
     @PostMapping
-    public ResponseEntity<Table> createTable(@RequestBody Table table) {
+    public Result createTable(@RequestBody Table table) {
         tableService.addTable(table);
-        return new ResponseEntity<>(table, HttpStatus.CREATED);
+        return Result.success(table);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Table> updateTable(@PathVariable Integer id, @RequestBody Table table) {
+    public Result updateTable(@PathVariable Integer id, @RequestBody Table table) {
         Table existingTable = tableService.getTableById(id);
         if (existingTable != null) {
             table.setTableId(id);
             tableService.updateTable(table);
-            return new ResponseEntity<>(table, HttpStatus.OK);
+            return Result.success(table);
         } else {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            return Result.error("Not Found");
         }
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteTable(@PathVariable Integer id) {
+    public Result deleteTable(@PathVariable Integer id) {
         Table existingTable = tableService.getTableById(id);
         if (existingTable != null) {
             tableService.deleteTable(id);
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+            return Result.success();
         } else {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            return Result.error("Not Found");
         }
     }
 }

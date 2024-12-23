@@ -1,15 +1,13 @@
 package org.example.controller;
 
 import org.example.pojo.DailyReport;
+import org.example.pojo.Result;
 import org.example.service.DailyReportService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/daily-reports")
@@ -19,56 +17,56 @@ public class DailyReportController {
     private DailyReportService dailyReportService;
 
     @GetMapping
-    public ResponseEntity<List<DailyReport>> getAllDailyReports() {
-        return new ResponseEntity<>(dailyReportService.getAllDailyReports(), HttpStatus.OK);
+    public Result getAllDailyReports() {
+        return Result.success(dailyReportService.getAllDailyReports());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<DailyReport> getDailyReportById(@PathVariable Integer id) {
+    public Result getDailyReportById(@PathVariable Integer id) {
         DailyReport dailyReport = dailyReportService.getDailyReportById(id);
         if (dailyReport != null) {
-            return new ResponseEntity<>(dailyReport, HttpStatus.OK);
+            return Result.success(dailyReport);
         } else {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            return Result.error("Not Found");
         }
     }
 
     @GetMapping("/date/{date}")
-    public ResponseEntity<DailyReport> getDailyReportByDate(@PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
+    public Result getDailyReportByDate(@PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
         DailyReport dailyReport = dailyReportService.getDailyReportByDate(date);
         if (dailyReport != null) {
-            return new ResponseEntity<>(dailyReport, HttpStatus.OK);
+            return Result.success(dailyReport);
         } else {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            return Result.error("Not Found");
         }
     }
 
     @PostMapping
-    public ResponseEntity<DailyReport> createDailyReport(@RequestBody DailyReport dailyReport) {
+    public Result createDailyReport(@RequestBody DailyReport dailyReport) {
         dailyReportService.addDailyReport(dailyReport);
-        return new ResponseEntity<>(dailyReport, HttpStatus.CREATED);
+        return Result.success(dailyReport);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<DailyReport> updateDailyReport(@PathVariable Integer id, @RequestBody DailyReport dailyReport) {
+    public Result updateDailyReport(@PathVariable Integer id, @RequestBody DailyReport dailyReport) {
         DailyReport existingDailyReport = dailyReportService.getDailyReportById(id);
         if (existingDailyReport != null) {
             dailyReport.setReportId(id);
             dailyReportService.updateDailyReport(dailyReport);
-            return new ResponseEntity<>(dailyReport, HttpStatus.OK);
+            return Result.success(dailyReport);
         } else {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            return Result.error("Not Found");
         }
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteDailyReport(@PathVariable Integer id) {
+    public Result deleteDailyReport(@PathVariable Integer id) {
         DailyReport existingDailyReport = dailyReportService.getDailyReportById(id);
         if (existingDailyReport != null) {
             dailyReportService.deleteDailyReport(id);
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+            return Result.success();
         } else {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            return Result.error("Not Found");
         }
     }
 }

@@ -1,6 +1,7 @@
 package org.example.controller;
 
 import org.example.pojo.Order;
+import org.example.pojo.Result;
 import org.example.service.OrderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -17,46 +18,46 @@ public class OrderController {
     private OrderService orderService;
 
     @GetMapping
-    public ResponseEntity<List<Order>> getAllOrders() {
-        return new ResponseEntity<>(orderService.getAllOrders(), HttpStatus.OK);
+    public Result getAllOrders() {
+        return Result.success(orderService.getAllOrders());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Order> getOrderById(@PathVariable Integer id) {
+    public Result getOrderById(@PathVariable Integer id) {
         Order order = orderService.getOrderById(id);
         if (order != null) {
-            return new ResponseEntity<>(order, HttpStatus.OK);
+            return Result.success(order);
         } else {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            return Result.error("Not Found");
         }
     }
 
     @PostMapping
-    public ResponseEntity<Order> createOrder(@RequestBody Order order) {
+    public Result createOrder(@RequestBody Order order) {
         orderService.addOrder(order);
-        return new ResponseEntity<>(order, HttpStatus.CREATED);
+        return Result.success(order);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Order> updateOrder(@PathVariable Integer id, @RequestBody Order order) {
+    public Result updateOrder(@PathVariable Integer id, @RequestBody Order order) {
         Order existingOrder = orderService.getOrderById(id);
         if (existingOrder != null) {
             order.setOrderId(id);
             orderService.updateOrder(order);
-            return new ResponseEntity<>(order, HttpStatus.OK);
+            return Result.success(order);
         } else {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            return Result.error("Not Found");
         }
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteOrder(@PathVariable Integer id) {
+    public Result deleteOrder(@PathVariable Integer id) {
         Order existingOrder = orderService.getOrderById(id);
         if (existingOrder != null) {
             orderService.deleteOrder(id);
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+            return Result.success();
         } else {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            return Result.error("Not Found");
         }
     }
 }
