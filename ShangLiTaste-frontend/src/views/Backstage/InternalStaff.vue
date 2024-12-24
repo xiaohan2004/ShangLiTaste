@@ -1,169 +1,258 @@
 <template>
   <div>
-    <!-- 筛选功能 -->
-    <div style="margin-bottom: 16px; display: flex; justify-content: space-between;">
-      <div style="flex: 1; display: flex; gap: 16px;">
-        <!-- 筛选身份 -->
-        <el-select
-            v-model="selectedStatus"
-            placeholder="选择身份"
-            style="width: 120px;">  <!-- 设置宽度 -->
-          <el-option label="全部" value="" />
-          <el-option label="管理员" value="管理员" />
-          <el-option label="服务员" value="服务员" />
+    <!-- 筛选条件 -->
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+      <div>
+        <el-select v-model="selectedStatus" placeholder="身份">
+          <el-option label="全部" value=""></el-option>  <!-- 添加“全部”选项 -->
+          <el-option label="管理员" value="管理员"></el-option>
+          <el-option label="服务员" value="服务员"></el-option>
         </el-select>
-
-
-      <!-- 筛选是否启用 -->
-      <el-select
-          v-model="selectedEnabled"
-          placeholder="是否启用"
-          style="width: 120px;">
-        <el-option label="全部" value="" />
-        <el-option label="启用" value="true" />
-        <el-option label="禁用" value="false" />
-      </el-select>
+        <el-select v-model="selectedEnabled" placeholder="是否启用">
+          <el-option label="全部" value=""></el-option>  <!-- 添加“全部”选项 -->
+          <el-option label="启用" value="true"></el-option>
+          <el-option label="禁用" value="false"></el-option>
+        </el-select>
       </div>
 
-      <!-- 增加行按钮 -->
-      <div style="display: flex; gap: 16px;">
-        <el-button type="primary" @click="addRow">增加</el-button>
-        <el-button type="success" @click="submitData">提交</el-button>  <!-- 新增提交按钮 -->
-      </div>
+      <!-- 增加按钮 -->
+      <el-button type="primary" @click="addRow" size="small">增加</el-button>
     </div>
 
-    <!-- 可编辑表格 -->
-    <el-table :data="filteredTableData.slice((currentPage - 1) * pageSize, currentPage * pageSize)" border style="width: 100%; height: 100%; overflow: auto;">
-      <!-- 用户编号列 -->
-      <el-table-column label="用户编号">
-        <template #default="scope">
+    <!-- 用户列表 -->
+    <el-table :data="filteredTableData" style="width: 100%" stripe>
+      <el-table-column label="用户编号" prop="userId">
+        <template #default="{ row }">
           <el-input
-              v-model="scope.row.table_id"
-              placeholder="请输入用户编号"
+              v-if="row.isEditing"
+              v-model="row.userId"
+              size="small"
+              disabled
           ></el-input>
+          <span v-else>{{ row.userId }}</span>
         </template>
       </el-table-column>
-
-      <!-- 用户名列 -->
-      <el-table-column label="用户名">
-        <template #default="scope">
+      <el-table-column label="用户名" prop="username">
+        <template #default="{ row }">
           <el-input
-              v-model="scope.row.username"
+              v-if="row.isEditing"
+              v-model="row.username"
+              size="small"
               placeholder="请输入用户名"
           ></el-input>
+          <span v-else>{{ row.username }}</span>
         </template>
       </el-table-column>
-
-      <!-- 用户密码列 -->
-      <el-table-column label="密码">
-        <template #default="scope">
+      <el-table-column label="密码" prop="password">
+        <template #default="{ row }">
           <el-input
-              v-model="scope.row.password"
-              type="password"
-          placeholder="请输入密码"
-          ></el-input>
+              v-if="row.isEditing"
+              v-model="row.password"
+              size="small"
+              placeholder="请输入密码"
+              type="password" >
+          </el-input>
+          <span v-else>{{ row.password }}</span>
         </template>
       </el-table-column>
 
-      <!-- 用户身份 -->
-      <el-table-column label="身份">
-        <template #default="scope">
-          <el-select v-model="scope.row.status" placeholder="请选择身份" style="width: 100%;">
+      <el-table-column label="身份" prop="status">
+        <template #default="{ row }">
+          <el-select
+              v-if="row.isEditing"
+              v-model="row.status"
+              size="small"
+              placeholder="选择身份"
+          >
             <el-option label="管理员" value="管理员"></el-option>
             <el-option label="服务员" value="服务员"></el-option>
           </el-select>
+          <span v-else>{{ row.status }}</span>
         </template>
       </el-table-column>
-
-      <!-- 是否启用列 -->
-      <el-table-column label="是否启用">
-        <template #default="scope">
-          <el-checkbox v-model="scope.row.enabled"></el-checkbox>
+      <el-table-column label="是否启用" prop="enabled">
+        <template #default="{ row }">
+          <el-switch
+              v-if="row.isEditing"
+              v-model="row.enabled"
+              size="small"
+          ></el-switch>
+          <span v-else>{{ row.enabled ? '启用' : '禁用' }}</span>
         </template>
       </el-table-column>
-
-      <!-- 操作列 -->
       <el-table-column label="操作">
         <template #default="scope">
           <el-button
+              type="warning"
+              size="small"
+              @click="editRow(scope.row)"
+              v-if="!scope.row.isEditing"
+          >
+            编辑
+          </el-button>
+          <el-button
+              type="success"
+              size="small"
+              @click="saveRow(scope.row)"
+              v-if="scope.row.isEditing"
+          >
+            保存
+          </el-button>
+          <el-button
               type="danger"
               size="small"
-              @click="deleteRow(scope.$index)"
+              @click="deleteRow(scope.row)"
           >
             删除
           </el-button>
         </template>
       </el-table-column>
     </el-table>
-
-    <!-- 翻页功能 -->
-    <el-pagination
-        :current-page="currentPage"
-        :page-size="pageSize"
-        :total="filteredTableData.length"
-        layout="total, prev, pager, next, jumper"
-        @current-change="handlePageChange"
-        class="pagination" /> <!-- 添加自定义类 -->
   </div>
 </template>
 
 <script>
+import axios from 'axios';
+
 export default {
   name: "internal-staff",
   data() {
     return {
       selectedStatus: "",  // 当前选中的状态筛选
       selectedEnabled: "", // 当前选中的是否启用筛选
-      tableData: [
-        { table_id: "T001", username: "用户1", password: "123456", status: "管理员", enabled: true },
-        { table_id: "T002", username: "用户2", password: "654321", status: "服务员", enabled: false },
-        { table_id: "T003", username: "用户3", password: "password", status: "管理员", enabled: true },
-        { table_id: "T004", username: "用户4", password: "admin", status: "服务员", enabled: false },
-      ],
-      currentPage: 1,  // 当前页数
-      pageSize: 5,  // 每页显示数量
+      userData: [],  // 存储从后端获取的用户数据
     };
   },
   computed: {
     // 根据状态和是否启用筛选数据
     filteredTableData() {
-      return this.tableData.filter((row) => {
+      return this.userData.filter((row) => {
         const matchesStatus = this.selectedStatus ? row.status === this.selectedStatus : true;
-        const matchesEnabled = this.selectedEnabled !== "" ? String(row.enabled) === this.selectedEnabled : true;  // 添加是否启用的筛选
-
-        return matchesStatus && matchesEnabled;  // 两者都需要满足
+        const matchesEnabled = this.selectedEnabled !== "" ? String(row.enabled) === this.selectedEnabled : true;
+        return matchesStatus && matchesEnabled;
       });
     },
   },
-
   methods: {
-    // 增加行
+    // 获取用户数据
+    fetchUserData() {
+      axios.get('http://10.100.164.44:8080/api/users')  // 替换为你的后端接口地址
+          .then(response => {
+            if (response.data.code === 1) {
+              this.userData = response.data.data.map(user => {
+                return {
+                  userId: user.userId,  // 用户编号
+                  username: user.username,  // 用户名
+                  password: user.password,  // 密码
+                  status: user.role === 0 ? '管理员' : '服务员',  // 根据角色映射身份
+                  enabled: user.status === 1,  // 根据状态设置是否启用
+                  isEditing: false, // 默认不编辑
+                };
+              });
+            } else {
+              console.error('Failed to fetch data');
+            }
+          })
+          .catch(error => {
+            console.error('Error fetching data:', error);
+          });
+    },
+
+    // 编辑行
+    editRow(row) {
+      row.isEditing = true;  // 设置当前行为可编辑
+    },
+
+    // 保存行
+    saveRow(row) {
+      axios.put(`http://10.100.164.44:8080/api/users/${row.userId}`, {
+        userId: row.userId,
+        username: row.username,
+        password: row.password,
+        role: row.status === '管理员' ? 0 : 1,  // 根据身份选择角色
+        status: row.enabled ? 1 : 0,  // 启用状态
+      })
+          .then(response => {
+            if (response.data.code === 1) {
+              row.isEditing = false;  // 保存成功后，取消编辑状态
+            } else {
+              console.error('Failed to update user');
+            }
+          })
+          .catch(error => {
+            console.error('Error updating user:', error);
+          });
+    },
+
+    // 删除行
+    deleteRow(row) {
+      // 向后端发送删除请求
+      axios.delete(`http://10.100.164.44:8080/api/users/${row.userId}`)
+          .then(response => {
+            if (response.data.code === 1) {
+              // 删除成功，移除本地数据中的该行
+              const index = this.tableData.indexOf(row);
+              if (index !== -1) {
+                this.tableData.splice(index, 1);
+              }
+            } else {
+              console.error('Failed to delete user');
+            }
+          })
+          .catch(error => {
+            console.error('Error deleting user:', error);
+          });
+    },
+
     addRow() {
       const newRow = {
-        table_id: "",  // 默认为空
+        userId: "",  // 默认为空
         username: "",  // 默认为空
         password: "",  // 默认为空
-        status: this.selectedStatus || "服务员",  // 默认根据筛选的状态
+        status: "服务员",  // 默认是“服务员”
         enabled: true,  // 默认启用
+        isEditing: false,  // 默认是编辑状态
       };
-      this.tableData.push(newRow);
+
+      // 将新增的用户数据推送到表格
+      this.userData.push(newRow);
+
+      // 向后端发送创建用户请求
+      axios.post('http://10.100.164.44:8080/api/users', {
+        username: newRow.username,
+        password: newRow.password,
+        role: newRow.status === '管理员' ? 0 : 1,  // 根据身份选择角色
+        status: newRow.enabled ? 1 : 0,  // 启用状态
+      })
+          .then(response => {
+            if (response.data.code === 1) {
+              // 创建用户成功，可以在此处更新返回的数据（如用户ID）
+              newRow.userId = response.data.data.userId;  // 假设返回数据中有用户ID
+              newRow.isEditing = false;  // 取消编辑状态
+            } else {
+              console.error('Failed to create user');
+              this.userData.pop();  // 如果创建失败，移除新增的空行
+            }
+          })
+          .catch(error => {
+            console.error('Error creating user:', error);
+            this.userData.pop();  // 如果请求失败，移除新增的空行
+          });
     },
-    // 删除行
-    deleteRow(index) {
-      this.tableData.splice(index, 1);
-    },
-    // 提交数据的逻辑
-    submitData() {
-      // 这里可以添加提交表单的代码
-      console.log("提交的数据：", this.tableData);
-    },
+
+
     // 处理翻页
     handlePageChange(page) {
       this.currentPage = page;
     },
   },
+  created() {
+    this.fetchUserData();
+  },
 };
 </script>
+
+
 
 <style scoped>
 /* 自定义样式 */
