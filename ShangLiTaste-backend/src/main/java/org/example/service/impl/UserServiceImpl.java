@@ -43,5 +43,16 @@ public class UserServiceImpl implements UserService {
     public void deleteUser(Integer id) {
         userMapper.deleteUser(id);
     }
+
+    @Override
+    public User login(User user) {
+        return userMapper.getUserByUsernameAndPassword(user);
+    }
+
+    @Override
+    public User register(User user) {
+        userMapper.insertUser(user);
+        return user;
+    }
 }
 

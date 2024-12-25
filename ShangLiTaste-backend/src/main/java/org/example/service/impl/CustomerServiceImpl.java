@@ -38,5 +38,16 @@ public class CustomerServiceImpl implements CustomerService {
     public void deleteCustomer(Integer id) {
         customerMapper.deleteCustomer(id);
     }
+
+    @Override
+    public Customer login(Customer customer) {
+        return customerMapper.getCustomerByNameAndPassword(customer);
+    }
+
+    @Override
+    public Customer register(Customer customer) {
+        customerMapper.insertCustomer(customer);
+        return customer;
+    }
 }
 
