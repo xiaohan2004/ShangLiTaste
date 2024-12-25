@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class OperateLog {
     private Integer id; //ID
-    private String operateUsername; //操作人类型
+    private String operateUser; //操作人类型
     private LocalDateTime operateTime; //操作时间
     private String className; //操作类名
     private String methodName; //操作方法名
