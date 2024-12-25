@@ -152,7 +152,7 @@ CREATE TABLE purchase_history
     FOREIGN KEY (order_id) REFERENCES orders (order_id)           -- 外键，关联订单表
 );
 
--- 17. 创建菜品评价表 (dish_reviews)
+-- 创建操作日志表
 CREATE TABLE operate_log
 (
     id            INT AUTO_INCREMENT PRIMARY KEY COMMENT 'ID，自增主键',
