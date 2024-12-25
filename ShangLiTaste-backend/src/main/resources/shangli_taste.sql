@@ -156,7 +156,7 @@ CREATE TABLE purchase_history
 CREATE TABLE operate_log
 (
     id            INT AUTO_INCREMENT PRIMARY KEY COMMENT 'ID，自增主键',
-    operate_user  INT COMMENT '操作人ID，关联到用户表',
+    operate_user  VARCHAR(255) COMMENT '操作人，关联到用户表',
     operate_time  DATETIME COMMENT '操作时间，记录操作发生的具体时间',
     class_name    VARCHAR(255) COMMENT '操作类名，记录被操作的类名',
     method_name   VARCHAR(255) COMMENT '操作方法名，记录被调用的方法名',
