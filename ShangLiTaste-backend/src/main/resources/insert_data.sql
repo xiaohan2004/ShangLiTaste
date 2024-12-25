@@ -23,20 +23,20 @@ VALUES (0, 0), -- 空闲, 大厅
 -- 空闲, 私密房间
 
 -- 插入菜品数据
-INSERT INTO dishes (name, category_id, price, description, is_active)
-VALUES ('凉拌黄瓜', 1, 18.00, '清脆爽口的开胃凉菜', 1),
-       ('麻婆豆腐', 2, 28.00, '麻辣鲜香的川菜代表', 1),
-       ('蛋炒饭', 3, 22.00, '香喷喷的美味主食', 1),
-       ('酸辣汤', 4, 20.00, '开胃解腻的美味汤品', 1),
-       ('柠檬茶', 5, 15.00, '清爽解暑的饮品', 1),
-       ('口水鸡', 1, 38.00, '香辣可口的四川名菜', 1),
-       ('宫保鸡丁', 2, 32.00, '鲜香麻辣的经典菜式', 1),
-       ('扬州炒饭', 3, 25.00, '色香味俱全的炒饭', 1),
-       ('西湖牛肉羹', 4, 30.00, '浓郁鲜美的传统汤品', 1),
-       ('龙井茶', 5, 18.00, '清香淡雅的绿茶', 1),
-       ('小笼包', 6, 28.00, '鲜美多汁的江南小吃', 1),
-       ('清蒸鲈鱼', 7, 68.00, '鲜嫩可口的海鲜佳肴', 1),
-       ('芒果布丁', 8, 22.00, '香甜细腻的水果甜点', 1);
+INSERT INTO dishes (name, img, category_id, price, description, is_active)
+VALUES ('凉拌黄瓜',"https://shanglixiaohan.oss-cn-shanghai.aliyuncs.com/shanglitaste/test.png", 1, 18.00, '清脆爽口的开胃凉菜', 1),
+       ('麻婆豆腐',"https://shanglixiaohan.oss-cn-shanghai.aliyuncs.com/shanglitaste/test.png", 2, 28.00, '麻辣鲜香的川菜代表', 1),
+       ('蛋炒饭',"https://shanglixiaohan.oss-cn-shanghai.aliyuncs.com/shanglitaste/test.png", 3, 22.00, '香喷喷的美味主食', 1),
+       ('酸辣汤',"https://shanglixiaohan.oss-cn-shanghai.aliyuncs.com/shanglitaste/test.png", 4, 20.00, '开胃解腻的美味汤品', 1),
+       ('柠檬茶',"https://shanglixiaohan.oss-cn-shanghai.aliyuncs.com/shanglitaste/test.png", 5, 15.00, '清爽解暑的饮品', 1),
+       ('口水鸡',"https://shanglixiaohan.oss-cn-shanghai.aliyuncs.com/shanglitaste/test.png", 1, 38.00, '香辣可口的四川名菜', 1),
+       ('宫保鸡丁',"https://shanglixiaohan.oss-cn-shanghai.aliyuncs.com/shanglitaste/test.png", 2, 32.00, '鲜香麻辣的经典菜式', 1),
+       ('扬州炒饭',"https://shanglixiaohan.oss-cn-shanghai.aliyuncs.com/shanglitaste/test.png", 3, 25.00, '色香味俱全的炒饭', 1),
+       ('西湖牛肉羹',"https://shanglixiaohan.oss-cn-shanghai.aliyuncs.com/shanglitaste/test.png", 4, 30.00, '浓郁鲜美的传统汤品', 1),
+       ('龙井茶',"https://shanglixiaohan.oss-cn-shanghai.aliyuncs.com/shanglitaste/test.png", 5, 18.00, '清香淡雅的绿茶', 1),
+       ('小笼包',"https://shanglixiaohan.oss-cn-shanghai.aliyuncs.com/shanglitaste/test.png", 6, 28.00, '鲜美多汁的江南小吃', 1),
+       ('清蒸鲈鱼',"https://shanglixiaohan.oss-cn-shanghai.aliyuncs.com/shanglitaste/test.png", 7, 68.00, '鲜嫩可口的海鲜佳肴', 1),
+       ('芒果布丁',"https://shanglixiaohan.oss-cn-shanghai.aliyuncs.com/shanglitaste/test.png", 8, 22.00, '香甜细腻的水果甜点', 1);
 
 -- 插入用户数据
 INSERT INTO users (username, password, role, status)
