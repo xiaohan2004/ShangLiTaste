@@ -1,15 +1,13 @@
 <template>
   <div>
     <!-- 筛选条件和增加按钮容器 -->
-    <div style="display: flex; justify-content: space-between; align-items: center;">
-
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
       <!-- 增加按钮，使用 flex-end 来让按钮右对齐 -->
-      <el-button type="primary" @click="addRow" size="small" style="margin-left: auto;">增加</el-button>
+      <el-button type="primary" @click="showAddDialog" size="small" style="margin-left: auto;">增加</el-button>
     </div>
 
-
     <!-- 顾客信息列表 -->
-    <el-table :data="filteredCustomerData" style="width: 100%" stripe>
+    <el-table :data="paginatedCustomerData" style="width: 100%" stripe>
       <el-table-column label="顾客编号" prop="customerId">
         <template #default="{ row }">
           <el-input
@@ -72,24 +70,26 @@
 
       <el-table-column label="注册日期" prop="registrationDate">
         <template #default="{ row }">
-          <el-input
+          <el-date-picker
               v-if="row.isEditing"
               v-model="row.registrationDate"
+              type="date"
+              placeholder="选择日期"
               size="small"
-              placeholder="请输入注册日期"
-          ></el-input>
+          ></el-date-picker>
           <span v-else>{{ row.registrationDate }}</span>
         </template>
       </el-table-column>
 
       <el-table-column label="生日" prop="birthday">
         <template #default="{ row }">
-          <el-input
+          <el-date-picker
               v-if="row.isEditing"
               v-model="row.birthday"
+              type="date"
+              placeholder="选择日期"
               size="small"
-              placeholder="请输入注册生日"
-          ></el-input>
+          ></el-date-picker>
           <span v-else>{{ row.birthday }}</span>
         </template>
       </el-table-column>
@@ -134,184 +134,231 @@
         </template>
       </el-table-column>
     </el-table>
+
+    <!-- 分页组件 -->
+    <div class="pagination-container">
+      <el-pagination
+          @size-change="handleSizeChange"
+          @current-change="handleCurrentChange"
+          :current-page="currentPage"
+          :page-sizes="[10, 20, 50, 100]"
+          :page-size="pageSize"
+          layout="total, sizes, prev, pager, next, jumper"
+          :total="customerData.length"
+      >
+      </el-pagination>
+    </div>
+
+    <!-- 添加顾客对话框 -->
+    <el-dialog title="添加新顾客" v-model="dialogVisible" width="30%">
+      <el-form :model="newCustomer" label-width="100px">
+        <el-form-item label="姓名">
+          <el-input v-model="newCustomer.name"></el-input>
+        </el-form-item>
+        <el-form-item label="电话">
+          <el-input v-model="newCustomer.phone"></el-input>
+        </el-form-item>
+        <el-form-item label="邮箱">
+          <el-input v-model="newCustomer.email"></el-input>
+        </el-form-item>
+        <el-form-item label="地址">
+          <el-input v-model="newCustomer.address"></el-input>
+        </el-form-item>
+        <el-form-item label="生日">
+          <el-date-picker v-model="newCustomer.birthday" type="date" placeholder="选择日期"></el-date-picker>
+        </el-form-item>
+        <el-form-item label="累计消费金额">
+          <el-input v-model="newCustomer.totalSpent" type="number"></el-input>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="dialogVisible = false">取消</el-button>
+          <el-button type="primary" @click="submitNewCustomer">确定</el-button>
+        </span>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script>
 import axios from "axios";
+import { ElMessage } from 'element-plus';
 
 export default {
-  name: "customers",
+  name: "CustomerManagement",
   data() {
     return {
-      selectedEnabled: "",  // 当前选中的是否启用筛选
-      customerData: [],  // 存储从后端获取的顾客数据
+      selectedEnabled: "",
+      customerData: [],
+      isLoading: false,
+      dialogVisible: false,
+      newCustomer: {
+        name: '',
+        phone: '',
+        email: '',
+        address: '',
+        birthday: '',
+        totalSpent: 0
+      },
+      currentPage: 1,
+      pageSize: 10
     };
   },
   computed: {
-    // 过滤后的数据
     filteredCustomerData() {
-      return this.customerData;  // 如果没有其他筛选条件，直接返回所有数据
+      return this.customerData;
+    },
+    paginatedCustomerData() {
+      const start = (this.currentPage - 1) * this.pageSize;
+      const end = start + this.pageSize;
+      return this.filteredCustomerData.slice(start, end);
     },
   },
-
   methods: {
-    // 获取顾客数据
     fetchCustomerData() {
-      axios.get('http://10.100.164.44:8080/api/customers')  // 替换为你的后端接口地址
+      axios.get('http://10.100.164.44:8080/api/customers')
           .then(response => {
             if (response.data.code === 1) {
-              this.customerData = response.data.data.map(user => {
-                return {
-                  customerId: user.customerId,  // 顾客编号
-                  name: user.name,  // 顾客姓名
-                  phone: user.phone,  // 顾客电话
-                  email: user.email,  // 顾客邮箱
-                  address: user.address,  // 顾客地址
-                  registrationDate: user.registrationDate,  // 注册日期
-                  birthday: user.birthday,  // 生日
-                  totalSpent: user.totalSpent,  // 累计消费金额
-                  isEditing: false, // 默认不编辑
-                };
-              });
+              this.customerData = response.data.data.map(customer => ({
+                customerId: customer.customerId,
+                name: customer.name,
+                phone: customer.phone,
+                email: customer.email,
+                address: customer.address,
+                registrationDate: customer.registrationDate,
+                birthday: customer.birthday,
+                totalSpent: customer.totalSpent,
+                isEditing: false,
+              }));
+              console.log('Total customers:', this.customerData.length);
             } else {
               console.error('Failed to fetch data');
+              ElMessage.error('获取顾客数据失败');
             }
           })
           .catch(error => {
             console.error('Error fetching data:', error);
+            ElMessage.error('获取顾客数据失败');
           });
     },
-
-    // 编辑行
     editRow(row) {
-      row.isEditing = true;  // 设置当前行为可编辑
+      row.isEditing = true;
     },
-
-// 保存行
     saveRow(row) {
       axios.put(`http://10.100.164.44:8080/api/customers/${row.customerId}`, {
-        customerId: row.customerId,  // 顾客编号
-        name: row.name,  // 顾客姓名
-        phone: row.phone,  // 顾客电话
-        email: row.email,  // 顾客邮箱
-        address: row.address,  // 顾客地址
-        registrationDate: row.registrationDate,  // 注册日期
-        birthday: row.birthday,  // 生日
-        totalSpent: row.totalSpent,  // 累计消费金额
+        customerId: row.customerId,
+        name: row.name,
+        phone: row.phone,
+        email: row.email,
+        address: row.address,
+        registrationDate: row.registrationDate,
+        birthday: row.birthday,
+        totalSpent: row.totalSpent,
       })
           .then(response => {
             if (response.data.code === 1) {
-              row.isEditing = false;  // 保存成功后，取消编辑状态
+              row.isEditing = false;
+              ElMessage.success('更新成功');
             } else {
-              console.error('Failed to update user');
+              console.error('Failed to update customer');
+              ElMessage.error('更新失败');
             }
           })
           .catch(error => {
-            console.error('Error updating user:', error);
+            console.error('Error updating customer:', error);
+            ElMessage.error('更新失败');
           });
     },
-
-    // 删除行
     deleteRow(row) {
-      // 向后端发送删除请求
       axios.delete(`http://10.100.164.44:8080/api/customers/${row.customerId}`)
           .then(response => {
             if (response.data.code === 1) {
-              // 删除成功，移除本地数据中的该行
               const index = this.customerData.indexOf(row);
               if (index !== -1) {
                 this.customerData.splice(index, 1);
               }
+              ElMessage.success('删除成功');
             } else {
-              console.error('Failed to delete user');
+              console.error('Failed to delete customer');
+              ElMessage.error('删除失败');
             }
           })
           .catch(error => {
-            console.error('Error deleting user:', error);
+            console.error('Error deleting customer:', error);
+            ElMessage.error('删除失败');
           });
     },
+    showAddDialog() {
+      this.dialogVisible = true;
+    },
+    submitNewCustomer() {
+      this.isLoading = true;
 
-    addRow() {
-      const newRow = {
-        customerId:"" , // 顾客编号
-        name: "",  // 顾客姓名
-        phone: "",  // 顾客电话
-        email: "",  // 顾客邮箱
-        address: "",  // 顾客地址
-        registrationDate: "",  // 注册日期
-        birthday: "",  // 生日
-        totalSpent: "",  // 累计消费金额
-        isEditing: false,  // 默认是编辑状态
+      // 获取当前本地时间并格式化为 "YYYY-MM-DDTHH:mm:ss" 格式
+      const now = new Date();
+      const formattedDate = now.getFullYear() + '-' +
+          String(now.getMonth() + 1).padStart(2, '0') + '-' +
+          String(now.getDate()).padStart(2, '0') + 'T' +
+          String(now.getHours()).padStart(2, '0') + ':' +
+          String(now.getMinutes()).padStart(2, '0') + ':' +
+          String(now.getSeconds()).padStart(2, '0');
+
+      const customerData = {
+        ...this.newCustomer,
+        registrationDate: formattedDate
       };
 
-      // 将新增的用户数据推送到表格
-      this.customerData.push(newRow);
-
-      // 向后端发送创建用户请求
-      axios.post('http://10.100.164.44:8080/api/customers', {
-        customerId: newRow.customerId,
-        name: newRow.name,
-        phone: newRow.phone,
-        email: newRow.email,
-        address: newRow.address,
-        registrationDate: newRow.registrationDate,
-        birthday: newRow.birthday,
-        totalSpent: newRow.totalSpent,
-      })
+      axios.post('http://10.100.164.44:8080/api/customers', customerData)
           .then(response => {
             if (response.data.code === 1) {
-              // 创建用户成功，可以在此处更新返回的数据（如用户ID）
-              newRow.customerId = response.data.data.customerId;  // 假设返回数据中有用户ID
-              newRow.isEditing = false;  // 取消编辑状态
+              this.dialogVisible = false;
+              this.fetchCustomerData(); // 刷新顾客列表
+              ElMessage.success('创建顾客成功');
             } else {
-              console.error('Failed to create user');
-              this.userData.pop();  // 如果创建失败，移除新增的空行
+              console.error('Failed to create customer');
+              ElMessage.error('创建顾客失败');
             }
           })
           .catch(error => {
-            console.error('Error creating user:', error);
-            this.userData.pop();  // 如果请求失败，移除新增的空行
+            console.error('Error creating customer:', error);
+            ElMessage.error('创建顾客失败');
+          })
+          .finally(() => {
+            this.isLoading = false;
           });
     },
-
-
-    // 处理翻页
-    handlePageChange(page) {
-      this.currentPage = page;
+    handleSizeChange(val) {
+      this.pageSize = val;
+      this.currentPage = 1;
+    },
+    handleCurrentChange(val) {
+      this.currentPage = val;
     },
   },
-
   created() {
-    // 组件加载时调用获取顾客数据的函数
     this.fetchCustomerData();
   },
 };
 </script>
 
 <style scoped>
-/* 自定义样式 */
 .el-table {
-  width: 100% !important; /* 确保表格宽度适应容器 */
-  height: 100% !important; /* 确保表格高度适应容器 */
+  width: 100%;
 }
 
-.el-table__body-wrapper {
-  max-height: calc(100vh - 150px); /* 限制表格的最大高度，避免超出屏幕 */
-  overflow: auto;
-}
-
-/* 给筛选框增加一些间距 */
 .el-select {
-  width: 120px;  /* 设置固定宽度 */
+  width: 120px;
+  margin-right: 10px;
 }
 
 .el-button {
-  height: 36px; /* 设置按钮高度 */
+  height: 36px;
 }
 
-/* 给翻页组件增加间距 */
-.el-pagination {
-  margin-top: 20px; /* 设置翻页与表格的间距 */
+.pagination-container {
+  margin-top: 20px;
+  text-align: right;
 }
 </style>
+

@@ -6,30 +6,29 @@
       <el-button type="primary" @click="submitData">导出</el-button>
     </div>
 
-
     <!-- 表格 -->
     <el-table
-        :data="filteredTableData.slice((currentPage - 1) * pageSize, currentPage * pageSize)"
+        :data="filteredYearlyData.slice((currentPage - 1) * pageSize, currentPage * pageSize)"
         border
         style="width: 100%; height: 100%; overflow: auto;"
     >
       <!-- 列：报表编号 -->
-      <el-table-column label="报表编号" prop="report_id" />
+      <el-table-column label="报表编号" prop="reportId" />
       <!-- 列：年份 -->
       <el-table-column label="年份" prop="year" />
       <!-- 列：总销售额 -->
-      <el-table-column label="总销售额" prop="total_sales" />
+      <el-table-column label="总销售额" prop="totalSales" />
       <!-- 列：总订单数 -->
-      <el-table-column label="总订单数" prop="total_orders" />
+      <el-table-column label="总订单数" prop="totalOrders" />
       <!-- 列：总账单数 -->
-      <el-table-column label="总账单数" prop="total_bills" />
+      <el-table-column label="总账单数" prop="totalBills" />
     </el-table>
 
     <!-- 分页 -->
     <el-pagination
         :current-page="currentPage"
         :page-size="pageSize"
-        :total="filteredTableData.length"
+        :total="filteredYearlyData.length"
         layout="total, prev, pager, next, jumper"
         @current-change="handlePageChange"
         class="pagination"
@@ -38,37 +37,64 @@
 </template>
 
 <script>
+import axios from "axios";
 export default {
-  name: "ReportMonthly",
+  name: "ReportYearly",
   data() {
     return {
-      tableData: [
-        { report_id: 1, year: 2024, total_sales: 1000, total_orders: 10, total_bills: 8 },
-        { report_id: 2, year: 2023, total_sales: 1600, total_orders: 22, total_bills: 20 },
-      ],
-      currentPage: 1, // 当前页数
-      pageSize: 10, // 每页显示的数量
+      yearlyData: [],  // 存储从后端获取的年度数据
+      currentPage: 1,  // 当前页码，初始化为第一页
+      pageSize: 10,    // 每页显示的数据条数，初始化为10
     };
   },
   computed: {
-    // 根据选择的年份过滤数据
-    filteredTableData() {
-      return this.tableData; // 不再需要根据年份进行筛选
+    // 过滤后的数据
+    filteredYearlyData() {
+      return this.yearlyData; // 目前不需要额外的筛选
     },
   },
 
   methods: {
     // 导出数据逻辑
     submitData() {
-      console.log("导出的数据：", this.filteredTableData);
+      console.log("导出的数据：", this.filteredYearlyData);
     },
+
+    // 获取年度数据
+    fetchYearlyData() {
+      axios.get('http://10.100.164.44:8080/api/annual-reports')  // 替换为你的后端接口地址
+          .then(response => {
+            if (response.data.code === 1) {
+              this.yearlyData = response.data.data.map(yearly => {
+                return {
+                  reportId: yearly.reportId,
+                  year: yearly.year,
+                  totalSales: yearly.totalSales,
+                  totalOrders: yearly.totalOrders,
+                  totalBills: yearly.totalBills,
+                };
+              });
+            } else {
+              console.error('Failed to fetch data');
+            }
+          })
+          .catch(error => {
+            console.error('Error fetching data:', error);
+          });
+    },
+
     // 翻页逻辑
     handlePageChange(page) {
       this.currentPage = page; // 更新当前页
     },
   },
+
+  created() {
+    this.fetchYearlyData();  // 页面创建时加载年度数据
+  },
 };
 </script>
+
 
 <style scoped>
 /* 表格样式 */

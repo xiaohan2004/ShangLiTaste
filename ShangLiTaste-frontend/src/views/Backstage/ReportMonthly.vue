@@ -21,29 +21,29 @@
 
     <!-- 表格 -->
     <el-table
-        :data="filteredTableData.slice((currentPage - 1) * pageSize, currentPage * pageSize)"
+        :data="filteredMonthlyData.slice((currentPage - 1) * pageSize, currentPage * pageSize)"
         border
         style="width: 100%; height: 100%; overflow: auto;"
     >
       <!-- 列：报表编号 -->
-      <el-table-column label="报表编号" prop="report_id" />
-      <!-- 列：年份 -->
-      <el-table-column label="年份" prop="year" />
+      <el-table-column label="报表编号" prop="reportId" />
       <!-- 列：月份 -->
       <el-table-column label="月份" prop="month" />
+      <!-- 列：年份 -->
+      <el-table-column label="年份" prop="year" />
       <!-- 列：总销售额 -->
-      <el-table-column label="总销售额" prop="total_sales" />
+      <el-table-column label="总销售额" prop="totalSales" />
       <!-- 列：总订单数 -->
-      <el-table-column label="总订单数" prop="total_orders" />
+      <el-table-column label="总订单数" prop="totalOrders" />
       <!-- 列：总账单数 -->
-      <el-table-column label="总账单数" prop="total_bills" />
+      <el-table-column label="总账单数" prop="totalBills" />
     </el-table>
 
     <!-- 分页 -->
     <el-pagination
         :current-page="currentPage"
         :page-size="pageSize"
-        :total="filteredTableData.length"
+        :total="filteredMonthlyData.length"
         layout="total, prev, pager, next, jumper"
         @current-change="handlePageChange"
         class="pagination"
@@ -52,49 +52,73 @@
 </template>
 
 <script>
+
+import axios from "axios";
+
 export default {
   name: "ReportMonthly",
   data() {
     return {
-      selectedDate: null, // 选择的年份（日期对象）
-      tableData: [
-        { report_id: 1, year: 2024, month: 1, total_sales: 1000, total_orders: 10, total_bills: 8 },
-        { report_id: 2, year: 2024, month: 2, total_sales: 1200, total_orders: 15, total_bills: 10 },
-        { report_id: 3, year: 2024, month: 3, total_sales: 1300, total_orders: 12, total_bills: 9 },
-        { report_id: 4, year: 2023, month: 11, total_sales: 1400, total_orders: 18, total_bills: 14 },
-        { report_id: 5, year: 2023, month: 12, total_sales: 1500, total_orders: 20, total_bills: 18 },
-        { report_id: 6, year: 2023, month: 1, total_sales: 1600, total_orders: 22, total_bills: 20 },
-      ],
-      currentPage: 1, // 当前页数
-      pageSize: 10, // 每页显示的数量
+      selectedDate: null,  // 当前选中的状态筛选
+      monthlyData: [],  // 存储从后端获取的用户数据
+      currentPage: 1,  // 当前页码，初始化为第一页
+      pageSize: 10,    // 每页显示的数据条数，初始化为10
     };
   },
   computed: {
     // 根据选择的年份过滤数据
-    filteredTableData() {
-      if (!this.selectedDate) return this.tableData; // 如果未选择年份，显示全部数据
+    filteredMonthlyData() {
+      if (!this.selectedDate) return this.monthlyData; // 如果未选择年份，显示全部数据
 
       const selectedYear = this.selectedDate.getFullYear(); // 获取选择的年份
-      return this.tableData.filter(row => row.year === selectedYear); // 根据年份筛选
+      return this.monthlyData.filter(row => row.year === selectedYear); // 根据年份筛选
     },
   },
 
   methods: {
     // 导出数据逻辑
     submitData() {
-      console.log("导出的数据：", this.filteredTableData);
+      console.log("导出的数据：", this.filteredMonthlyData);
     },
     // 翻页逻辑
     handlePageChange(page) {
       this.currentPage = page; // 更新当前页
     },
-    // 当年份选择器变化时的逻辑
+    // 当日期选择器变化时的逻辑
     filterData() {
-      this.currentPage = 1; // 切换年份后，将页码重置为第一页
+      this.currentPage = 1; // 切换日期后，将页码重置为第一页
     },
+    // 获取数据
+    fetchMonthlyData() {
+      axios.get('http://10.100.164.44:8080/api/monthly-reports')  // 替换为你的后端接口地址
+          .then(response => {
+            if (response.data.code === 1) {
+              this.monthlyData = response.data.data.map(monthly => {
+                return {
+                  reportId: monthly.reportId,
+                  month: monthly.month,
+                  year: monthly.year,
+                  totalSales: monthly.totalSales,
+                  totalOrders: monthly.totalOrders,
+                  totalBills: monthly.totalBills,
+                };
+              });
+            } else {
+              console.error('Failed to fetch data');
+            }
+          })
+          .catch(error => {
+            console.error('Error fetching data:', error);
+          });
+    },
+  },
+
+  created() {
+    this.fetchMonthlyData();  // 页面创建时加载数据
   },
 };
 </script>
+
 
 <style scoped>
 /* 表格样式 */

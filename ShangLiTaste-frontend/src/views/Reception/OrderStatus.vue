@@ -7,27 +7,26 @@
       <!-- 筛选订单状态 -->
       <el-select v-model="selectedStatus" placeholder="选择订单状态" style="width: 120px;">
         <el-option label="全部" value="" />
-        <el-option label="待支付" value="待支付" />
-        <el-option label="已支付" value="已支付" />
+        <el-option label="进行中" value="进行中" />
         <el-option label="已完成" value="已完成" />
-        <el-option label="已取消" value="已取消" />
+        <el-option label="已结账" value="已结账" />
       </el-select>
     </div>
 
     <!-- 表格展示 -->
     <el-table
-        :data="filteredTableData.slice((currentPage - 1) * pageSize, currentPage * pageSize)"
+        :data="filteredOrderData.slice((currentPage - 1) * pageSize, currentPage * pageSize)"
         border
         style="width: 100%;"
     >
       <!-- 订单编号列 -->
-      <el-table-column label="订单编号" prop="order_id"></el-table-column>
+      <el-table-column label="订单编号" prop="orderId"></el-table-column>
 
       <!-- 餐桌编号列 -->
-      <el-table-column label="餐桌编号" prop="table_id"></el-table-column>
+      <el-table-column label="餐桌编号" prop="tableId"></el-table-column>
 
       <!-- 下单时间列 -->
-      <el-table-column label="下单时间" prop="order_time"></el-table-column>
+      <el-table-column label="下单时间" prop="orderTime"></el-table-column>
 
       <!-- 订单状态 -->
       <el-table-column label="订单状态" prop="status">
@@ -42,7 +41,7 @@
     <el-pagination
         :current-page="currentPage"
         :page-size="pageSize"
-        :total="filteredTableData.length"
+        :total="filteredOrderData.length"
         layout="total, prev, pager, next, jumper"
         @current-change="handlePageChange"
         class="pagination"
@@ -51,45 +50,23 @@
 </template>
 
 <script>
+
+import axios from "axios";
+
 export default {
   name: "OrderManagement",
   data() {
     return {
-      selectedStatus: "", // 当前选中的订单状态筛选
-      tableData: [
-        {
-          order_id: "O001",
-          table_id: "T01",
-          order_time: "2024-12-01 12:00",
-          status: "待支付",
-        },
-        {
-          order_id: "O002",
-          table_id: "T02",
-          order_time: "2024-12-01 13:00",
-          status: "已支付",
-        },
-        {
-          order_id: "O003",
-          table_id: "T03",
-          order_time: "2024-12-01 14:00",
-          status: "已完成",
-        },
-        {
-          order_id: "O004",
-          table_id: "T04",
-          order_time: "2024-12-01 15:00",
-          status: "已取消",
-        },
-      ],
-      currentPage: 1, // 当前页数
-      pageSize: 5, // 每页显示数量
+      selectedStatus: "",  // 当前选中的状态筛选
+      orderData: [],  // 存储从后端获取的用户数据
+      currentPage: 1,  // 当前页码，初始化为第一页
+      pageSize: 10,    // 每页显示的数据条数，初始化为10
     };
   },
   computed: {
     // 根据筛选条件过滤数据
-    filteredTableData() {
-      return this.tableData.filter((item) => {
+    filteredOrderData() {
+      return this.orderData.filter((item) => {
         const statusMatch = this.selectedStatus ? item.status === this.selectedStatus : true;
         return statusMatch;
       });
@@ -102,18 +79,40 @@ export default {
     // 根据订单状态返回对应的颜色
     getStatusType(status) {
       switch (status) {
-        case '待支付':
+        case '进行中':
           return 'warning'; // 黄色
-        case '已支付':
-          return 'success'; // 绿色
         case '已完成':
+          return 'success'; // 绿色
+        case '已结账':
           return 'info'; // 蓝色
-        case '已取消':
-          return 'danger'; // 红色
         default:
           return 'default'; // 默认颜色
       }
     },
+
+    fetchDailyData() {
+      axios.get('http://10.100.164.44:8080/api/orders')  // 替换为你的后端接口地址
+          .then(response => {
+            if (response.data.code === 1) {
+              this.orderData = response.data.data.map(order => {
+                return {
+                  orderId: order.orderId,
+                  tableId: order.tableId,
+                  orderTime: order.orderTime,
+                  status: order.status === 0 ? '进行中' : order.status === 1 ? '已完成' : '已结账',
+                };
+              });
+            } else {
+              console.error('Failed to fetch data');
+            }
+          })
+          .catch(error => {
+            console.error('Error fetching data:', error);
+          });
+    },
+  },
+  created() {
+    this.fetchDailyData();  // 页面创建时加载数据
   },
 };
 </script>

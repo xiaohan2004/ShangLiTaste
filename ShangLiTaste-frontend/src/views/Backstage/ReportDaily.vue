@@ -21,27 +21,27 @@
 
     <!-- 表格 -->
     <el-table
-        :data="filteredTableData.slice((currentPage - 1) * pageSize, currentPage * pageSize)"
+        :data="filteredDailyData.slice((currentPage - 1) * pageSize, currentPage * pageSize)"
         border
         style="width: 100%; height: 100%; overflow: auto;"
     >
       <!-- 列：报表编号 -->
-      <el-table-column label="报表编号" prop="report_id" />
+      <el-table-column label="报表编号" prop="reportId" />
       <!-- 列：日期 -->
       <el-table-column label="日期" prop="date" />
       <!-- 列：总销售额 -->
-      <el-table-column label="总销售额" prop="total_sales" />
+      <el-table-column label="总销售额" prop="totalSales" />
       <!-- 列：总订单数 -->
-      <el-table-column label="总订单数" prop="total_orders" />
+      <el-table-column label="总订单数" prop="totalOrders" />
       <!-- 列：总账单数 -->
-      <el-table-column label="总账单数" prop="total_bills" />
+      <el-table-column label="总账单数" prop="totalBills" />
     </el-table>
 
     <!-- 分页 -->
     <el-pagination
         :current-page="currentPage"
         :page-size="pageSize"
-        :total="filteredTableData.length"
+        :total="filteredDailyData.length"
         layout="total, prev, pager, next, jumper"
         @current-change="handlePageChange"
         class="pagination"
@@ -50,34 +50,30 @@
 </template>
 
 <script>
+
+import axios from "axios";
+
 export default {
-  name: "Customers",
+  name: "daily",
   data() {
     return {
-      selectedDate: null, // 选择的年月（日期对象）
-      tableData: [
-        { report_id: 1, date: "2024-01-01", total_sales: 1000, total_orders: 10, total_bills: 8 },
-        { report_id: 2, date: "2024-02-15", total_sales: 1200, total_orders: 15, total_bills: 10 },
-        { report_id: 3, date: "2024-03-10", total_sales: 1300, total_orders: 12, total_bills: 9 },
-        { report_id: 4, date: "2024-02-25", total_sales: 1400, total_orders: 18, total_bills: 14 },
-        { report_id: 5, date: "2024-02-28", total_sales: 1500, total_orders: 20, total_bills: 18 },
-        { report_id: 6, date: "2024-03-02", total_sales: 1600, total_orders: 22, total_bills: 20 },
-      ],
-      currentPage: 1, // 当前页数
-      pageSize: 10, // 每页显示的数量
+      selectedDate: null,  // 当前选中的状态筛选
+      dailyData: [],  // 存储从后端获取的用户数据
+      currentPage: 1,  // 当前页码，初始化为第一页
+      pageSize: 10,    // 每页显示的数据条数，初始化为10
     };
   },
   computed: {
     // 根据选择的年月过滤数据
-    filteredTableData() {
-      if (!this.selectedDate) return this.tableData; // 如果未选择日期，显示全部数据
+    filteredDailyData() {
+      if (!this.selectedDate) return this.dailyData; // 如果未选择日期，显示全部数据
 
-      // 将 selectedDate 转换为 yyyy-MM 格式，并确保是本地时间
+      // 将 selectedDate 转换为 yyyy-MM 格式
       const year = this.selectedDate.getFullYear();
       const month = String(this.selectedDate.getMonth() + 1).padStart(2, "0"); // 月份需要 +1，因为 getMonth() 从 0 开始
       const selectedYearMonth = `${year}-${month}`;
 
-      return this.tableData.filter(row => {
+      return this.dailyData.filter(row => {
         const rowYearMonth = row.date.slice(0, 7); // 提取数据的年月
         return rowYearMonth === selectedYearMonth; // 比较
       });
@@ -87,7 +83,7 @@ export default {
   methods: {
     // 导出数据逻辑
     submitData() {
-      console.log("导出的数据：", this.filteredTableData);
+      console.log("导出的数据：", this.filteredDailyData);
     },
     // 翻页逻辑
     handlePageChange(page) {
@@ -97,9 +93,36 @@ export default {
     filterData() {
       this.currentPage = 1; // 切换日期后，将页码重置为第一页
     },
+    // 获取数据
+    fetchDailyData() {
+      axios.get('http://10.100.164.44:8080/api/daily-reports')  // 替换为你的后端接口地址
+          .then(response => {
+            if (response.data.code === 1) {
+              this.dailyData = response.data.data.map(daily => {
+                return {
+                  reportId: daily.reportId,
+                  date: daily.date,
+                  totalSales: daily.totalSales,
+                  totalOrders: daily.totalOrders,
+                  totalBills: daily.totalBills,
+                };
+              });
+            } else {
+              console.error('Failed to fetch data');
+            }
+          })
+          .catch(error => {
+            console.error('Error fetching data:', error);
+          });
+    },
+  },
+
+  created() {
+    this.fetchDailyData();  // 页面创建时加载数据
   },
 };
 </script>
+
 
 <style scoped>
 /* 表格样式 */
