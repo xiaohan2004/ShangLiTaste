@@ -26,6 +26,11 @@ public class CustomerServiceImpl implements CustomerService {
 
     @Override
     public void addCustomer(Customer customer) {
+        //先检查用户名是否已存在
+        Customer existingCustomer = customerMapper.getCustomerByName(customer.getName());
+        if (existingCustomer != null) {
+            throw new RuntimeException("Username already exists");
+        }
         customerMapper.insertCustomer(customer);
     }
 
@@ -46,6 +51,11 @@ public class CustomerServiceImpl implements CustomerService {
 
     @Override
     public Customer register(Customer customer) {
+        //先检查用户名是否已存在
+        Customer existingCustomer = customerMapper.getCustomerByName(customer.getName());
+        if (existingCustomer != null) {
+            throw new RuntimeException("Username already exists");
+        }
         customerMapper.insertCustomer(customer);
         return customer;
     }

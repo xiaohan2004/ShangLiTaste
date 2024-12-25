@@ -16,16 +16,13 @@ public class CustomerRegisterController {
     private CustomerService customerService;
 
     @PostMapping("/customerregister")
-    public Result login(@RequestBody Customer customer){
+    public Result login(@RequestBody Customer customer) {
         log.info("顾客注册: {}", customer);
-        Customer c = customerService.register(customer);
-
-        //注册成功,返回成功信息
-        if (c != null){
-            return Result.success();
+        try {
+            Customer c = customerService.register(customer);
+        } catch (Exception e) {
+            return Result.error(e.getMessage());
         }
-
-        //注册失败, 返回错误信息
-        return Result.error("用户名已存在");
+        return Result.success();
     }
 }

@@ -31,7 +31,11 @@ public class CustomerController {
 
     @PostMapping
     public Result createCustomer(@RequestBody Customer customer) {
-        customerService.addCustomer(customer);
+        try {
+            customerService.addCustomer(customer);
+        }catch (Exception e) {
+            return Result.error(e.getMessage());
+        }
         return Result.success(customer);
     }
 

@@ -30,7 +30,11 @@ public class UserController {
 
     @PostMapping
     public Result createUser(@RequestBody User user) {
-        userService.addUser(user);
+        try {
+            userService.addUser(user);
+        } catch (Exception e) {
+            return Result.error(e.getMessage());
+        }
         return Result.success(user);
     }
 

@@ -22,14 +22,11 @@ public class UserRegisterController {
     @PostMapping("/userregister")
     public Result login(@RequestBody User user){
         log.info("员工注册: {}", user);
-        User u = userService.register(user);
-
-        //注册成功
-        if (u != null){
-            return Result.success();
+        try {
+            User u = userService.register(user);
+        } catch (Exception e) {
+            return Result.error(e.getMessage());
         }
-
-        //注册失败, 返回错误信息
-        return Result.error("用户名已存在");
+        return Result.success();
     }
 }
