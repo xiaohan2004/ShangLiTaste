@@ -1,5 +1,8 @@
 <script setup>
-import { ref } from 'vue';
+import {ref} from 'vue';
+import {ElMessage} from "element-plus";
+import api from "@/api/api";
+import router from "@/router";
 
 // 定义表单输入数据
 const account = ref('');
@@ -34,8 +37,26 @@ const validateForm = () => {
 // 提交表单
 const handleSubmit = () => {
   if (validateForm()) {
-    alert('注册成功！');
-    // 在这里执行注册逻辑，例如发送到后端
+    // 提交表单逻辑
+    try {
+      api.post('/customerregister', {
+        name: account.value,
+        phone: phone.value,
+        password: password.value
+      }).then(response => {
+        const {code, msg} = response.data;
+        if (code === 1) {
+          ElMessage.success('注册成功');
+          // 注册成功后跳转到登录页面
+          router.push('/customer-login');
+        } else {
+          ElMessage.error(msg || '注册失败，请重试');
+        }
+      });
+    } catch (error) {
+      console.error('注册失败:', error);
+      ElMessage.error('注册请求失败，请检查网络连接');
+    }
   }
 };
 </script>
@@ -48,19 +69,19 @@ const handleSubmit = () => {
       <form @submit.prevent="handleSubmit" class="register-form">
         <div class="form-item">
           <label for="account">账号</label>
-          <input type="text" id="account" v-model="account" placeholder="请输入账号" required />
+          <input type="text" id="account" v-model="account" placeholder="请输入账号" required/>
         </div>
         <div class="form-item">
           <label for="phone">手机号</label>
-          <input type="text" id="phone" v-model="phone" placeholder="请输入手机号" required />
+          <input type="text" id="phone" v-model="phone" placeholder="请输入手机号" required/>
         </div>
         <div class="form-item">
           <label for="password">密码</label>
-          <input type="password" id="password" v-model="password" placeholder="请输入密码" required />
+          <input type="password" id="password" v-model="password" placeholder="请输入密码" required/>
         </div>
         <div class="form-item">
           <label for="confirmPassword">确认密码</label>
-          <input type="password" id="confirmPassword" v-model="confirmPassword" placeholder="确认密码" required />
+          <input type="password" id="confirmPassword" v-model="confirmPassword" placeholder="确认密码" required/>
         </div>
         <div class="form-item">
           <button type="submit" class="submit-btn">注册</button>
