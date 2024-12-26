@@ -1,6 +1,6 @@
 // api.js
 import axios from 'axios';
-import router from './router'; // 假设您使用Vue Router
+import router from '../router'; // 假设您使用Vue Router
 
 const api = axios.create({
     baseURL: 'http://10.100.164.44:8080',
