@@ -11,6 +11,13 @@ const goToPage = (path) => {
 }
 
 
+// 登出功能
+const handleLogout = () => {
+  localStorage.removeItem('jwt');
+  // 重定向到登录页面
+  router.push('/customer-login');
+};
+
 </script>
 
 <template>
@@ -29,7 +36,7 @@ const goToPage = (path) => {
         <template #dropdown>
           <el-dropdown-menu>
             <el-dropdown-item @click="goToPage('/customer/customer-user')">个人信息</el-dropdown-item>
-            <el-dropdown-item @click="goToPage('/customer-login')">退出登录</el-dropdown-item>
+            <el-dropdown-item @click="handleLogout">退出登录</el-dropdown-item>
           </el-dropdown-menu>
         </template>
       </el-dropdown>
