@@ -54,6 +54,7 @@
 <script>
 
 import axios from "axios";
+import api from "@/api/api";
 
 export default {
   name: "ReportMonthly",
@@ -90,7 +91,7 @@ export default {
     },
     // 获取数据
     fetchMonthlyData() {
-      axios.get('http://10.100.164.44:8080/api/monthly-reports')  // 替换为你的后端接口地址
+      api.get('/api/monthly-reports')  // 替换为你的后端接口地址
           .then(response => {
             if (response.data.code === 1) {
               this.monthlyData = response.data.data.map(monthly => {

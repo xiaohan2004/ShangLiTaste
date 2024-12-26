@@ -38,6 +38,7 @@
 
 <script>
 import axios from "axios";
+import api from "@/api/api";
 export default {
   name: "ReportYearly",
   data() {
@@ -62,7 +63,7 @@ export default {
 
     // 获取年度数据
     fetchYearlyData() {
-      axios.get('http://10.100.164.44:8080/api/annual-reports')  // 替换为你的后端接口地址
+      api.get('/api/annual-reports')  // 替换为你的后端接口地址
           .then(response => {
             if (response.data.code === 1) {
               this.yearlyData = response.data.data.map(yearly => {

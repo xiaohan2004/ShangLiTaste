@@ -70,14 +70,7 @@
 
       <el-table-column label="注册日期" prop="registrationDate">
         <template #default="{ row }">
-          <el-date-picker
-              v-if="row.isEditing"
-              v-model="row.registrationDate"
-              type="date"
-              placeholder="选择日期"
-              size="small"
-          ></el-date-picker>
-          <span v-else>{{ row.registrationDate }}</span>
+          {{ row.registrationDate }}
         </template>
       </el-table-column>
 
@@ -96,13 +89,7 @@
 
       <el-table-column label="累计消费金额" prop="totalSpent">
         <template #default="{ row }">
-          <el-input
-              v-if="row.isEditing"
-              v-model="row.totalSpent"
-              size="small"
-              placeholder="请输入累计消费"
-          ></el-input>
-          <span v-else>{{ row.totalSpent }}</span>
+          {{ row.totalSpent }}
         </template>
       </el-table-column>
 
@@ -272,7 +259,7 @@ export default {
           });
     },
     deleteRow(row) {
-      axios.delete(`http://10.100.164.44:8080/api/customers/${row.customerId}`)
+      api.delete(`/api/customers/${row.customerId}`)
           .then(response => {
             if (response.data.code === 1) {
               const index = this.customerData.indexOf(row);
@@ -310,7 +297,7 @@ export default {
         registrationDate: formattedDate
       };
 
-      axios.post('http://10.100.164.44:8080/api/customers', customerData)
+      api.post('/api/customers', customerData)
           .then(response => {
             if (response.data.code === 1) {
               this.dialogVisible = false;

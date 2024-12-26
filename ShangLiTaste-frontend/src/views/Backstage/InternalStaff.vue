@@ -155,6 +155,7 @@
 <script>
 import axios from 'axios';
 import { ElMessage } from 'element-plus';
+import api from "@/api/api";
 
 export default {
   name: "UserManagement",
@@ -191,7 +192,7 @@ export default {
   },
   methods: {
     fetchUserData() {
-      axios.get('http://10.100.164.44:8080/api/users')
+      api.get('/api/users')
           .then(response => {
             if (response.data.code === 1) {
               this.userData = response.data.data.map(user => ({
@@ -216,7 +217,7 @@ export default {
       row.isEditing = true;
     },
     saveRow(row) {
-      axios.put(`http://10.100.164.44:8080/api/users/${row.userId}`, {
+      api.put(`/api/users/${row.userId}`, {
         userId: row.userId,
         username: row.username,
         password: row.password,
@@ -238,7 +239,7 @@ export default {
           });
     },
     deleteRow(row) {
-      axios.delete(`http://10.100.164.44:8080/api/users/${row.userId}`)
+      api.delete(`/api/users/${row.userId}`)
           .then(response => {
             if (response.data.code === 1) {
               const index = this.userData.indexOf(row);
@@ -262,7 +263,7 @@ export default {
     submitNewUser() {
       this.isLoading = true;
 
-      axios.post('http://10.100.164.44:8080/api/users', {
+      api.post('/api/users', {
         username: this.newUser.username,
         password: this.newUser.password,
         role: this.newUser.status === '管理员' ? 0 : 1,

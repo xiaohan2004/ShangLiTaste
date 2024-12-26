@@ -95,6 +95,7 @@
 <script>
 import axios from "axios";
 import { ElMessage } from 'element-plus';
+import api from "@/api/api";
 
 export default {
   name: "CategoryManagement",
@@ -122,7 +123,7 @@ export default {
   },
   methods: {
     fetchCategoryData() {
-      axios.get('http://10.100.164.44:8080/api/categories')
+      api.get('/api/categories')
           .then(response => {
             if (response.data.code === 1) {
               this.categoryData = response.data.data.map(category => ({
@@ -145,7 +146,7 @@ export default {
       row.isEditing = true;
     },
     saveRow(row) {
-      axios.put(`http://10.100.164.44:8080/api/categories/${row.categoryId}`, {
+      api.put(`/api/categories/${row.categoryId}`, {
         categoryId: row.categoryId,
         categoryName: row.categoryName,
       })
@@ -164,7 +165,7 @@ export default {
           });
     },
     deleteRow(row) {
-      axios.delete(`http://10.100.164.44:8080/api/categories/${row.categoryId}`)
+      api.delete(`/api/categories/${row.categoryId}`)
           .then(response => {
             if (response.data.code === 1) {
               const index = this.categoryData.indexOf(row);
@@ -174,7 +175,7 @@ export default {
               ElMessage.success('删除成功');
             } else {
               console.error('Failed to delete category');
-              ElMessage.error('删除失败');
+              ElMessage.error('删除失败,该类别下有关联菜品');
             }
           })
           .catch(error => {
@@ -192,7 +193,7 @@ export default {
         ...this.newCategory,
       };
 
-      axios.post('http://10.100.164.44:8080/api/categories', categoryData)
+      api.post('/api/categories', categoryData)
           .then(response => {
             if (response.data.code === 1) {
               this.dialogVisible = false;
