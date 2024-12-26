@@ -31,6 +31,11 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void addUser(User user) {
+        //先检查用户名是否已存在
+        User existingUser = userMapper.getUserByUsername(user.getUsername());
+        if (existingUser != null) {
+            throw new RuntimeException("Username already exists");
+        }
         userMapper.insertUser(user);
     }
 
@@ -51,6 +56,11 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User register(User user) {
+        //先检查用户名是否已存在
+        User existingUser = userMapper.getUserByUsername(user.getUsername());
+        if (existingUser != null) {
+            throw new RuntimeException("Username already exists");
+        }
         userMapper.insertUser(user);
         return user;
     }

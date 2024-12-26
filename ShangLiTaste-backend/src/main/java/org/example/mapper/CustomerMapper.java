@@ -16,6 +16,9 @@ public interface CustomerMapper {
     @Select("SELECT * FROM customers WHERE name = #{name} AND password = #{password}")
     Customer getCustomerByNameAndPassword(Customer customer);
 
+    @Select("SELECT * FROM customers WHERE name = #{name}")
+    Customer getCustomerByName(String name);
+
     @Insert("INSERT INTO customers(name, phone, email, address, registration_date, birthday, total_spent) VALUES(#{name}, #{phone}, #{email}, #{address}, #{registrationDate}, #{birthday}, #{totalSpent})")
     @Options(useGeneratedKeys = true, keyProperty = "customerId")
     void insertCustomer(Customer customer);
