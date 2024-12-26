@@ -1,6 +1,6 @@
 // api.js
 import axios from 'axios';
-import router from '../router'; // 假设您使用Vue Router
+import router from '@/router'; // 假设您使用Vue Router
 
 const api = axios.create({
     baseURL: 'http://10.100.164.44:8080',
@@ -16,7 +16,7 @@ api.interceptors.request.use(
             console.warn('No JWT token found');
             // 可以在这里添加额外的逻辑，比如重定向到登录页面
             // 但要注意避免无限重定向循环
-            if (!(config.url.includes('login')||config.url.includes('register'))) {
+            if (!(config.url.includes('login') || config.url.includes('register'))) {
                 router.push('/customer-login');
             }
         }
@@ -30,20 +30,16 @@ api.interceptors.request.use(
 // 响应拦截器
 api.interceptors.response.use(
     (response) => {
-        const { code, msg, data } = response.data;
-
-        if (code === 1) {
-            // 请求成功
-            return response.data;
-        } else {
-            // 请求失败，但是是预期内的失败（后端返回的错误信息）
-            console.warn(`Request failed: ${msg}`);
-            return response.data;
+        const {code, msg, data} = response.data;
+        if (code === 0 && msg === "NOT_LOGIN") {
+            localStorage.removeItem('jwt');
+            router.push('/customer-login');
         }
+        return response;
     },
     (error) => {
         if (error.response) {
-            const { code, msg } = error.response.data;
+            const {code, msg} = error.response.data;
 
             switch (error.response.status) {
                 case 401:

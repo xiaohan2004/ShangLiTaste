@@ -66,7 +66,7 @@
 import {ref} from 'vue';
 import {ElMessage} from 'element-plus';
 import {useRouter} from 'vue-router';
-import api from '../api/api'; // Import the api instance
+import api from "@/api/api"; // Import the api instance
 
 
 // 表单数据
@@ -92,7 +92,7 @@ const handleLogin = async () => {
       password: password.value
     });
 
-    const {code, msg, data} = response;
+    const {code, msg, data} = response.data;
 
     if (code === 1) {
       // 登录成功
