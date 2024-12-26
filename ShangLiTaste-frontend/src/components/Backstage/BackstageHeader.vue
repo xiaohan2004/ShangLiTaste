@@ -8,6 +8,13 @@ const router = useRouter()
 const goToPage = (path) => {
   router.push(path)
 }
+
+// 登出功能
+const handleLogout = () => {
+  localStorage.removeItem('jwt');
+  // 重定向到登录页面
+  router.push('/internalStaff-login');
+};
 </script>
 
 <template>
@@ -25,7 +32,7 @@ const goToPage = (path) => {
         <template #dropdown>
           <el-dropdown-menu>
             <el-dropdown-item @click="goToPage('/backstage/manager-user')">个人信息</el-dropdown-item>
-            <el-dropdown-item @click="goToPage('/internalStaff-login')">退出登录</el-dropdown-item>
+            <el-dropdown-item @click="handleLogout">退出登录</el-dropdown-item>
           </el-dropdown-menu>
         </template>
       </el-dropdown>

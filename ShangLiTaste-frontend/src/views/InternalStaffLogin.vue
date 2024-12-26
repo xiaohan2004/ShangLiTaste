@@ -42,8 +42,8 @@
 
           <el-form-item label="身份">
             <el-radio-group v-model="role">
-              <el-radio label="waiter">服务员</el-radio>
               <el-radio label="admin">管理员</el-radio>
+              <el-radio label="waiter">服务员</el-radio>
             </el-radio-group>
           </el-form-item>
 
@@ -63,36 +63,58 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
-import { ElMessage } from 'element-plus';
-import { useRouter } from 'vue-router';
+import {ref} from 'vue';
+import {ElMessage} from 'element-plus';
+import {useRouter} from 'vue-router';
+import api from './api'; // Import the api instance
 
 // 表单数据
 const username = ref('');
 const password = ref('');
-const role = ref('waiter'); // 默认选择服务员
+const role = ref('admin'); // 默认选择服务员
 
 // 获取路由实例
 const router = useRouter();
 
 // 登录方法
-const handleLogin = () => {
+const handleLogin = async () => {
   if (!username.value || !password.value) {
     ElMessage.error('请输入账号和密码');
     return;
   }
 
-  if (role.value === 'admin') {
-    ElMessage.success(`登录成功！身份：管理员`);
-    // 使用 goToPage 方法进行跳转
-    goToPage('/backstage/table-management');
-  } else {
-    ElMessage.success(`登录成功！身份：服务员`);
-    goToPage('/reception/table-status');
-  }
+  let loginUrl = '/userlogin'; // Remove the base URL as it's already set in the api instance
 
-  // 打印登录信息
-  console.log('登录信息：', { username: username.value, password: password.value, role: role.value });
+  try {
+    const response = await api.post(loginUrl, {
+      username: username.value,
+      password: password.value
+    });
+
+    const {code, msg, data} = response;
+
+    if (code === 1) {
+      // 登录成功
+      ElMessage.success(`登录成功！身份：${role.value === 'admin' ? '管理员' : '服务员'}`);
+
+      // 保存 JWT 到本地存储，data 直接就是 JWT
+      localStorage.setItem('jwt', data);
+
+
+      // 根据角色跳转到不同页面
+      if (role.value === 'admin') {
+        goToPage('/backstage/table-management');
+      } else {
+        goToPage('/reception/table-status');
+      }
+    } else {
+      // 登录失败
+      ElMessage.error(msg || '登录失败，请重试');
+    }
+  } catch (error) {
+    console.error('登录请求失败:', error);
+    ElMessage.error('登录请求失败，请检查网络连接');
+  }
 };
 
 // 跳转方法
