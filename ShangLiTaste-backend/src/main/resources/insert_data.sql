@@ -48,12 +48,12 @@ VALUES ('xiaohan', 'xiaohan', 0, 1),
        ('manager1', 'hashed_password', 0, 1);
 
 -- 插入客户数据
-INSERT INTO customers (name, phone, email, address, registration_date, birthday, total_spent)
-VALUES ('张三', '13800138000', 'zhangsan@example.com', '北京市朝阳区', '2023-01-01 10:00:00', '1990-05-15', 500.00),
-       ('李四', '13900139000', 'lisi@example.com', '上海市浦东新区', '2023-02-01 11:00:00', '1985-08-20', 800.00),
-       ('王五', '13700137000', 'wangwu@example.com', '广州市天河区', '2023-03-01 09:00:00', '1988-12-10', 650.00),
-       ('赵六', '13600136000', 'zhaoliu@example.com', '深圳市南山区', '2023-04-01 14:00:00', '1992-03-25', 450.00),
-       ('钱七', '13500135000', 'qianqi@example.com', '杭州市西湖区', '2023-05-01 16:00:00', '1995-07-30', 300.00);
+INSERT INTO customers (name,password, phone, email, address, registration_date, birthday, total_spent)
+VALUES ('xiaohan', 'xiaohan','13800138000', 'zhangsan@example.com', '北京市朝阳区', '2023-01-01 10:00:00', '1990-05-15', 500.00),
+       ('李四', '123456','13900139000', 'lisi@example.com', '上海市浦东新区', '2023-02-01 11:00:00', '1985-08-20', 800.00),
+       ('王五', '123456','13700137000', 'wangwu@example.com', '广州市天河区', '2023-03-01 09:00:00', '1988-12-10', 650.00),
+       ('赵六', '123456','13600136000', 'zhaoliu@example.com', '深圳市南山区', '2023-04-01 14:00:00', '1992-03-25', 450.00),
+       ('钱七', '123456','13500135000', 'qianqi@example.com', '杭州市西湖区', '2023-05-01 16:00:00', '1995-07-30', 300.00);
 
 -- 插入订单数据
 INSERT INTO orders (table_id, order_time, status)

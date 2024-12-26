@@ -8,21 +8,17 @@
 
       <!-- 左侧走马灯 -->
       <div class="carousel-area">
-        <el-carousel height="300px" width="300px" motion-blur>
-          <el-carousel-item v-for="item in 4" :key="item">
-            <h3 class="carousel-text">{{ item }}</h3>
-          </el-carousel-item>
-        </el-carousel>
+        <ImageCarousel :items="carouselItems" :height="300" :width="300" />
       </div>
 
       <!-- 右侧登录表单 -->
       <div class="form-area">
         <h2 class="login-title">欢迎来到订餐系统<br>━(*｀∀´*)ノ亻!</h2>
 
-        <el-form :model="{ username, password }" class="login-form">
+        <el-form :model="{ name, password }" class="login-form">
           <el-form-item label="账号" required>
             <el-input
-                v-model="username"
+                v-model="name"
                 placeholder="请输入账号"
                 clearable
                 prefix-icon="el-icon-user"
@@ -59,17 +55,26 @@ import {ref} from 'vue';
 import {ElMessage} from 'element-plus';
 import {useRouter} from 'vue-router';
 import api from "@/api/api";
+import ImageCarousel from "@/components/ImageCarousel.vue";
 
 // 表单数据
-const username = ref('');
+const name = ref('');
 const password = ref('');
+
+// 轮播图数据
+const carouselItems = ref([
+  { id: 1, imageUrl: 'https://ts1.cn.mm.bing.net/th/id/R-C.b3a7697d2793ba094a861d546c31190d?rik=NevOIW4XmkUuMA&riu=http%3a%2f%2fseopic.699pic.com%2fphoto%2f50069%2f5445.jpg_wh1200.jpg&ehk=wuLPicg%2b9wXz8QAwp%2fAVFBtJQ6loBUiVfQZu2bbZODA%3d&risl=&pid=ImgRaw&r=0', altText: 'Image 1' },
+  { id: 2, imageUrl: 'https://ts1.cn.mm.bing.net/th/id/R-C.802a0a8b66b9965de3fd49b33c970bea?rik=C%2fArDzfQPNA%2bVg&riu=http%3a%2f%2fseopic.699pic.com%2fphoto%2f50014%2f9021.jpg_wh1200.jpg&ehk=MTs%2biICdAdXvbOYNkToV9AsVYT1Z%2fkC9T3eH%2fCQSlq4%3d&risl=&pid=ImgRaw&r=0', altText: 'Image 2' },
+  { id: 3, imageUrl: 'https://ts1.cn.mm.bing.net/th/id/R-C.27cc12852d74bd9f8b86285fb5645723?rik=NnLHyob2rqjoWw&riu=http%3a%2f%2fseopic.699pic.com%2fphoto%2f50127%2f2949.jpg_wh1200.jpg&ehk=OoCG2Q6HaRnNV8FKHgYH82oE%2fPKZ1cGLcRZ38AOcdoA%3d&risl=&pid=ImgRaw&r=0', altText: 'Image 3' },
+  { id: 4, imageUrl: 'https://bpic.588ku.com/back_origin_min_pic/21/03/30/08b5c525d7ead8dfae119bbdffa9bc8c.jpg', altText: 'Image 4' },
+]);
 
 // 获取路由实例
 const router = useRouter();
 
 // 登录方法
 const handleLogin = async () => {
-  if (!username.value || !password.value) {
+  if (!name.value || !password.value) {
     ElMessage.error('请输入账号和密码');
     return;
   }
@@ -78,7 +83,7 @@ const handleLogin = async () => {
 
   try {
     const response = await api.post(loginUrl, {
-      username: username.value,
+      name: name.value,
       password: password.value
     });
 
@@ -86,7 +91,7 @@ const handleLogin = async () => {
 
     if (code === 1) {
       // 登录成功
-      ElMessage.success(`登录成功！欢迎你，${username.value}`);
+      ElMessage.success(`登录成功！欢迎你，${name.value}`);
 
       // 保存 JWT 到本地存储，data 直接就是 JWT
       localStorage.setItem('jwt', data);

@@ -1,83 +1,40 @@
-<script setup>
-import {ref} from 'vue';
-import {ElMessage} from "element-plus";
-import api from "@/api/api";
-import router from "@/router";
-
-// 定义表单输入数据
-const account = ref('');
-const phone = ref('');
-const password = ref('');
-const confirmPassword = ref('');
-
-// 定义验证函数
-const validateForm = () => {
-  if (!account.value || !phone.value || !password.value || !confirmPassword.value) {
-    alert('请填写所有字段');
-    return false;
-  }
-
-  // 验证手机号格式
-  const phoneRegex = /^[0-9]{11}$/;
-  if (!phoneRegex.test(phone.value)) {
-    alert('请输入有效的手机号');
-    return false;
-  }
-
-  // 密码和确认密码要一致
-  if (password.value !== confirmPassword.value) {
-    alert('密码和确认密码不一致');
-    return false;
-  }
-
-  // 其他业务逻辑验证
-  return true;
-};
-
-// 提交表单
-const handleSubmit = () => {
-  if (validateForm()) {
-    // 提交表单逻辑
-    try {
-      api.post('/customerregister', {
-        name: account.value,
-        phone: phone.value,
-        password: password.value
-      }).then(response => {
-        const {code, msg} = response.data;
-        if (code === 1) {
-          ElMessage.success('注册成功');
-          // 注册成功后跳转到登录页面
-          router.push('/customer-login');
-        } else {
-          ElMessage.error(msg || '注册失败，请重试');
-        }
-      });
-    } catch (error) {
-      console.error('注册失败:', error);
-      ElMessage.error('注册请求失败，请检查网络连接');
-    }
-  }
-};
-</script>
-
 <template>
   <div class="app-container">
-    <!-- 全页面容器 -->
     <div class="register-container">
       <h2 class="title">用户注册</h2>
       <form @submit.prevent="handleSubmit" class="register-form">
         <div class="form-item">
-          <label for="account">账号</label>
-          <input type="text" id="account" v-model="account" placeholder="请输入账号" required/>
+          <label for="name">姓名</label>
+          <input type="text" id="name" v-model="customer.name" placeholder="请输入姓名" required/>
         </div>
         <div class="form-item">
           <label for="phone">手机号</label>
-          <input type="text" id="phone" v-model="phone" placeholder="请输入手机号" required/>
+          <input type="text" id="phone" v-model="customer.phone" placeholder="请输入手机号" required/>
+        </div>
+        <div class="form-item">
+          <label for="email">邮箱</label>
+          <input type="email" id="email" v-model="customer.email" placeholder="请输入邮箱" required/>
+        </div>
+        <div class="form-item">
+          <label for="address">地址</label>
+          <input type="text" id="address" v-model="customer.address" placeholder="请输入地址" required/>
+        </div>
+        <div class="form-item">
+          <label for="birthday">生日</label>
+          <input
+              type="text"
+              id="birthday"
+              ref="birthdayInput"
+              v-model="customer.birthday"
+              placeholder="YYYY-MM-DD"
+              @focus="handleBirthdayFocus"
+              @blur="handleBirthdayBlur"
+              required
+          />
         </div>
         <div class="form-item">
           <label for="password">密码</label>
-          <input type="password" id="password" v-model="password" placeholder="请输入密码" required/>
+          <input type="password" id="password" v-model="customer.password" placeholder="请输入密码" required/>
         </div>
         <div class="form-item">
           <label for="confirmPassword">确认密码</label>
@@ -91,78 +48,160 @@ const handleSubmit = () => {
   </div>
 </template>
 
+<script setup>
+import { ref, onMounted } from 'vue';
+import { ElMessage } from "element-plus";
+import { format } from 'date-fns'
+import api from "@/api/api";
+import router from "@/router";
+
+const customer = ref({
+  name: '',
+  password: '',
+  phone: '',
+  email: '',
+  address: '',
+  birthday: '',
+});
+
+const confirmPassword = ref('');
+const birthdayInput = ref(null);
+
+onMounted(() => {
+  if (birthdayInput.value) {
+    birthdayInput.value.type = 'text';
+    birthdayInput.value.placeholder = 'YYYY-MM-DD';
+  }
+});
+
+const handleBirthdayFocus = (event) => {
+  event.target.type = 'date';
+};
+
+const handleBirthdayBlur = (event) => {
+  if (!event.target.value) {
+    event.target.type = 'text';
+  }
+};
+
+const validateForm = () => {
+  if (!customer.value.name || !customer.value.password || !customer.value.phone || !customer.value.email || !customer.value.address || !customer.value.birthday) {
+    ElMessage.error('请填写所有字段');
+    return false;
+  }
+
+  const phoneRegex = /^[0-9]{11}$/;
+  if (!phoneRegex.test(customer.value.phone)) {
+    ElMessage.error('请输入有效的手机号');
+    return false;
+  }
+
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(customer.value.email)) {
+    ElMessage.error('请输入有效的邮箱地址');
+    return false;
+  }
+
+  if (customer.value.password !== confirmPassword.value) {
+    ElMessage.error('密码和确认密码不一致');
+    return false;
+  }
+
+  return true;
+};
+
+const handleSubmit = () => {
+  if (validateForm()) {
+    try {
+      const formattedCustomer = {
+        ...customer.value,
+        birthday: format(new Date(customer.value.birthday), 'yyyy-MM-dd'),
+        registrationDate: format(new Date(), "yyyy-MM-dd'T'HH:mm:ss"),
+        totalSpent: 0
+      };
+
+      api.post('/customerregister', formattedCustomer).then(response => {
+        const { code, msg } = response.data;
+        if (code === 1) {
+          ElMessage.success('注册成功');
+          router.push('/customer-login');
+        } else {
+          ElMessage.error(msg || '注册失败，请重试');
+        }
+      });
+    } catch (error) {
+      console.error('注册失败:', error);
+      ElMessage.error('注册请求失败，请检查网络连接');
+    }
+  }
+};
+</script>
+
 <style scoped>
-/* 使html和body的高度为100% */
 html, body {
   height: 100%;
   margin: 0;
-  padding: 0; /* 确保没有默认的边距 */
+  padding: 0;
 }
 
-/* App容器，保证整个页面包裹 */
 .app-container {
-  height: 100vh; /* 使用视口高度，确保填满整个屏幕 */
+  min-height: 100vh;
   display: flex;
-  justify-content: center; /* 水平居中 */
-  align-items: center; /* 垂直居中 */
-  background-color: white; /* 页面背景颜色 */
-  background-image: radial-gradient(circle, #fff3e0 10%, transparent 50%); /* 设置波点背景 */
-  background-size: 20px 10px; /* 波点的大小和间距 */
-  background-repeat: repeat; /* 使背景重复 */
-  width: 100%; /* 让宽度填满屏幕 */
-  box-sizing: border-box; /* 包含内边距和边框 */
+  justify-content: center;
+  align-items: center;
+  background-color: white;
+  background-image: radial-gradient(circle, #fff3e0 10%, transparent 50%);
+  background-size: 20px 10px;
+  background-repeat: repeat;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 20px;
 }
 
-/* 注册容器 */
 .register-container {
   width: 100%;
-  max-width: 400px;
-  padding: 40px 20px; /* 增加上下内边距 */
-  background-color: #fff3e0; /* 设置表单背景 */
+  max-width: 600px;
+  padding: 40px;
+  background-color: #fff3e0;
   border-radius: 8px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  text-align: center; /* 使整个容器内的内容居中 */
+  text-align: center;
   display: flex;
   flex-direction: column;
-  justify-content: center; /* 垂直居中注册表单内容 */
-  align-items: center; /* 水平居中注册表单内容 */
-  box-sizing: border-box; /* 包含内边距和边框 */
+  justify-content: center;
+  align-items: center;
+  box-sizing: border-box;
 }
 
-/* 标题 */
 .title {
   color: #f57c00;
   font-size: 24px;
   margin-bottom: 20px;
 }
 
-/* 表单容器 */
 .register-form {
   display: flex;
   flex-direction: column;
   gap: 20px;
-  align-items: center; /* 使输入框居中 */
-}
-
-/* 表单项 */
-.form-item {
-  display: flex;
-  justify-content: flex-start; /* 左对齐文字 */
   align-items: center;
   width: 100%;
-  max-width: 350px; /* 控制输入框最大宽度 */
+}
+
+.form-item {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 100%;
 }
 
 .form-item label {
   font-size: 16px;
   color: #f57c00;
-  width: 30%; /* 控制标签宽度 */
-  text-align: left; /* 标签靠左对齐 */
-  margin-right: 10px; /* 标签和输入框之间的间距 */
+  margin-bottom: 5px;
 }
 
 .form-item input {
-  width: 60%; /* 控制输入框宽度 */
+  width: 100%;
   padding: 10px;
   font-size: 14px;
   border: 1px solid #f57c00;
@@ -174,10 +213,8 @@ html, body {
   border-color: #e65100;
 }
 
-/* 提交按钮 */
 .submit-btn {
   width: 100%;
-  max-width: 350px; /* 控制按钮最大宽度 */
   padding: 12px;
   background-color: #f57c00;
   border: none;
@@ -195,4 +232,20 @@ html, body {
   outline: none;
 }
 
+@media (min-width: 768px) {
+  .form-item {
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .form-item label {
+    width: 30%;
+    margin-bottom: 0;
+    margin-right: 10px;
+  }
+
+  .form-item input {
+    width: 70%;
+  }
+}
 </style>
