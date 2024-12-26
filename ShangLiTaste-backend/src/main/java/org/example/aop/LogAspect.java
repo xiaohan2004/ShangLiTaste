@@ -34,7 +34,7 @@ public class LogAspect {
         String methodName = joinPoint.getSignature().getName();
 
         // 你可以添加其它的排除条件
-        if (methodName.contains("login") || methodName.contains("register")) {
+        if (methodName.contains("login") || methodName.contains("register") || methodName.contains("Log")) {
             return joinPoint.proceed();  // 排除带有 "exclude" 的方法
         }
 
@@ -67,7 +67,7 @@ public class LogAspect {
 
 
         //记录操作日志
-        OperateLog operateLog = new OperateLog(null, operateUsername, operateTime, className, methodName, methodParams, returnValue, costTime);
+        OperateLog operateLog = new OperateLog(null, operateUsername, operateTime, className, methodName, costTime);
         operateLogMapper.insertOperateLog(operateLog);
 
         log.info("AOP记录操作日志: {}", operateLog);

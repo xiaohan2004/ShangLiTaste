@@ -11,11 +11,11 @@ import java.util.List;
 public interface OperateLogMapper {
 
     //插入日志数据
-    @Insert("insert into operate_log (operate_user, operate_time, class_name, method_name, method_params, return_value, cost_time) " +
-            "values (#{operateUser}, #{operateTime}, #{className}, #{methodName}, #{methodParams}, #{returnValue}, #{costTime});")
+    @Insert("insert into operate_log (operate_user, operate_time, class_name, method_name, cost_time) " +
+            "values (#{operateUser}, #{operateTime}, #{className}, #{methodName}, #{costTime});")
     public void insertOperateLog(OperateLog log);
 
-    @Select("select * from operate_log order by id desc")
+    @Select("select * from operate_log order by id desc limit 500")
     public List<OperateLog> getAllOperateLogs();
 
 }

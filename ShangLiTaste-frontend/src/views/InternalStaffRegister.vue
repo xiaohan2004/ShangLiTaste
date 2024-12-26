@@ -1,12 +1,16 @@
 <script setup>
-import { ref } from 'vue';
-import axios from 'axios';  // 导入 axios
+import {ref} from 'vue';
+import axios from 'axios';
+import {ElMessage} from "element-plus";
+import api from "@/api/api";
+import router from "@/router";  // 导入 axios
 
 // 定义表单输入数据
 const account = ref('');
 const password = ref('');
 const confirmPassword = ref('');
 const role = ref(''); // 角色选择，0 为管理员，1 为服务员
+const checkCode = ref('');
 
 // 定义验证函数
 const validateForm = () => {
@@ -21,6 +25,10 @@ const validateForm = () => {
     return false;
   }
 
+  if (checkCode.value !== 'xiaohan') {
+    ElMessage.error('校验码错误');
+    return false;
+  }
   // 其他业务逻辑验证
   return true;
 };
@@ -36,14 +44,16 @@ const handleSubmit = async () => {
     };
 
     try {
-      // 发送 POST 请求到后端 API
-      const response = await axios.post('http://10.100.164.44:8080/api/users', user);
-      if (response.data.code === 1) {
-        alert('注册成功！');
-        // 可以在这里执行成功后的跳转，例如跳转到登录页
-      } else {
-        alert('注册失败！');
-      }
+      api.post('/userregister', user).then(response => {
+        const {code, msg} = response.data;
+        if (code === 1) {
+          ElMessage.success('注册成功');
+          // 注册成功后跳转到登录页面
+          router.push('/internalStaff-login');
+        } else {
+          ElMessage.error(msg || '注册失败，请重试');
+        }
+      });
     } catch (error) {
       console.error('注册请求失败', error);
       alert('请求失败，请稍后再试');
@@ -61,15 +71,15 @@ const handleSubmit = async () => {
       <form @submit.prevent="handleSubmit" class="register-form">
         <div class="form-item">
           <label for="account">账号</label>
-          <input type="text" id="account" v-model="account" placeholder="请输入账号" required />
+          <input type="text" id="account" v-model="account" placeholder="请输入账号" required/>
         </div>
         <div class="form-item">
           <label for="password">密码</label>
-          <input type="password" id="password" v-model="password" placeholder="请输入密码" required />
+          <input type="password" id="password" v-model="password" placeholder="请输入密码" required/>
         </div>
         <div class="form-item">
           <label for="confirmPassword">确认密码</label>
-          <input type="password" id="confirmPassword" v-model="confirmPassword" placeholder="确认密码" required />
+          <input type="password" id="confirmPassword" v-model="confirmPassword" placeholder="确认密码" required/>
         </div>
         <div class="form-item">
           <label for="role">角色</label>
@@ -78,6 +88,10 @@ const handleSubmit = async () => {
             <option value="admin">管理员</option>
             <option value="staff">服务员</option>
           </select>
+        </div>
+        <div class="form-item">
+          <label for="check">校验码</label>
+          <input type="password" id="checkCode" v-model="checkCode" required/>
         </div>
         <div class="form-item">
           <button type="submit" class="submit-btn">注册</button>
