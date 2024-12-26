@@ -5,9 +5,9 @@
       <h3>菜品种类</h3>
       <el-menu :default-active="activeCategory" class="category-menu">
         <el-menu-item index="all" @click="filterCategory('all')">全部</el-menu-item>
-        <el-menu-item index="main" @click="filterCategory('main')">主菜</el-menu-item>
-        <el-menu-item index="dessert" @click="filterCategory('dessert')">甜点</el-menu-item>
-        <el-menu-item index="drink" @click="filterCategory('drink')">饮品</el-menu-item>
+        <el-menu-item v-for="category in categories" :key="category.categoryId" :index="category.categoryId" @click="filterCategory(category.categoryId)">
+          {{ category.categoryName }}
+        </el-menu-item>
       </el-menu>
     </div>
 
@@ -28,23 +28,21 @@
       </div>
       <div class="menu-items">
         <div
-            v-for="(item, index) in filteredMenu"
-            :key="index"
+            v-for="item in filteredMenu"
+            :key="item.dishId"
             class="menu-item"
-            @click.stop="openItemDialog(item)"> <!-- 阻止点击事件冒泡 -->
-
-          <img :src="item.image" alt="菜品图片" class="menu-image" />
+            @click.stop="openItemDialog(item)"
+        >
+          <img :src="item.img" alt="菜品图片" class="menu-image" />
           <div class="item-info">
             <h3 class="item-name">{{ item.name }}</h3>
             <p class="item-price">￥{{ item.price }}</p>
           </div>
           <div class="item-actions">
-            <!-- 减号按钮 -->
             <button class="decrease-btn" @click.stop="decreaseCount(item)" :disabled="item.count <= 0">
               <span>-</span>
             </button>
-            <span class="item-count">{{ item.count }}</span>
-            <!-- 加号按钮 -->
+            <span class="item-count">{{ item.count || 0 }}</span>
             <button class="increase-btn" @click.stop="increaseCount(item)">
               <span>+</span>
             </button>
@@ -68,12 +66,11 @@
 
       <div v-if="cart.length > 0">
         <ul>
-          <li v-for="(item, index) in cart.filter(item => item.count > 0)" :key="index">
+          <li v-for="item in cart.filter(item => item.count > 0)" :key="item.dishId">
             {{ item.name }} x{{ item.count }} - ￥{{ item.price * item.count }}
           </li>
         </ul>
         <p><strong>总计：</strong>￥{{ totalPrice }}</p>
-        <!-- 下单按钮 -->
         <el-button type="primary" @click="placeOrder" class="order-button">下单</el-button>
       </div>
       <div v-else>
@@ -86,15 +83,14 @@
   <el-dialog
       v-model="dialogVisible"
       width="40%"
-      :show-close="true">
-
-    <!-- 自定义标题 -->
+      :show-close="true"
+  >
     <template #title>
       <div class="custom-title">{{ selectedItem.name }}</div>
     </template>
 
     <div class="item-detail">
-      <img :src="selectedItem.image" alt="菜品图片" class="item-detail-image" />
+      <img :src="selectedItem.img" alt="菜品图片" class="item-detail-image" />
       <div class="item-detail-info">
         <p><strong>价格：</strong>￥{{ selectedItem.price }}</p>
         <p><strong>介绍：</strong>{{ selectedItem.description }}</p>
@@ -104,40 +100,23 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
-import {ElMessage} from "element-plus";
+import { ref, computed, onMounted } from 'vue';
+import { ElMessage } from 'element-plus';
+import api from '@/api/api';
 
 // 菜品数据
-const menu = ref([
-  { name: '宫保鸡丁', price: 28, image: 'https://via.placeholder.com/150', category: 'main', count: 0, description: '这是一道经典的川菜，香辣可口' },
-  { name: '麻辣小龙虾', price: 58, image: 'https://via.placeholder.com/150', category: 'main', count: 0, description: '鲜美的小龙虾，辣味十足' },
-  { name: '巧克力蛋糕', price: 18, image: 'https://via.placeholder.com/150', category: 'dessert', count: 0, description: '美味的巧克力蛋糕，适合甜点爱好者' },
-  { name: '冰淇淋', price: 15, image: 'https://via.placeholder.com/150', category: 'dessert', count: 0, description: '多种口味的冰淇淋，冰凉爽口' },
-  { name: '可乐', price: 8, image: 'https://via.placeholder.com/150', category: 'drink', count: 0, description: '经典的碳酸饮料' },
-  { name: '橙汁', price: 12, image: 'https://via.placeholder.com/150', category: 'drink', count: 0, description: '新鲜榨取的橙汁，清爽可口' },
-  { name: '宫保鸡丁1', price: 28, image: 'https://via.placeholder.com/150', category: 'main', count: 0, description: '这是一道经典的川菜，香辣可口' },
-  { name: '麻辣小龙虾1', price: 58, image: 'https://via.placeholder.com/150', category: 'main', count: 0, description: '鲜美的小龙虾，辣味十足' },
-  { name: '巧克力蛋糕1', price: 18, image: 'https://via.placeholder.com/150', category: 'dessert', count: 0, description: '美味的巧克力蛋糕，适合甜点爱好者' },
-  { name: '冰淇淋1', price: 15, image: 'https://via.placeholder.com/150', category: 'dessert', count: 0, description: '多种口味的冰淇淋，冰凉爽口' },
-  { name: '可乐1', price: 8, image: 'https://via.placeholder.com/150', category: 'drink', count: 0, description: '经典的碳酸饮料' },
-  { name: '橙汁1', price: 12, image: 'https://via.placeholder.com/150', category: 'drink', count: 0, description: '新鲜榨取的橙汁，清爽可口' },
-  { name: '宫保鸡丁2', price: 28, image: 'https://via.placeholder.com/150', category: 'main', count: 0, description: '这是一道经典的川菜，香辣可口' },
-  { name: '麻辣小龙虾2', price: 58, image: 'https://via.placeholder.com/150', category: 'main', count: 0, description: '鲜美的小龙虾，辣味十足' },
-  { name: '巧克力蛋糕2', price: 18, image: 'https://via.placeholder.com/150', category: 'dessert', count: 0, description: '美味的巧克力蛋糕，适合甜点爱好者' },
-  { name: '冰淇淋2', price: 15, image: 'https://via.placeholder.com/150', category: 'dessert', count: 0, description: '多种口味的冰淇淋，冰凉爽口' },
-  { name: '可乐2', price: 8, image: 'https://via.placeholder.com/150', category: 'drink', count: 0, description: '经典的碳酸饮料' },
-  { name: '橙汁2', price: 12, image: 'https://via.placeholder.com/150', category: 'drink', count: 0, description: '新鲜榨取的橙汁，清爽可口' },
-  { name: '宫保鸡丁3', price: 28, image: 'https://via.placeholder.com/150', category: 'main', count: 0, description: '这是一道经典的川菜，香辣可口' },
-  { name: '麻辣小龙虾3', price: 58, image: 'https://via.placeholder.com/150', category: 'main', count: 0, description: '鲜美的小龙虾，辣味十足' },
-  { name: '巧克力蛋糕3', price: 18, image: 'https://via.placeholder.com/150', category: 'dessert', count: 0, description: '美味的巧克力蛋糕，适合甜点爱好者' },
-  { name: '冰淇淋3', price: 15, image: 'https://via.placeholder.com/150', category: 'dessert', count: 0, description: '多种口味的冰淇淋，冰凉爽口' },
-  { name: '可乐3', price: 8, image: 'https://via.placeholder.com/150', category: 'drink', count: 0, description: '经典的碳酸饮料' },
-  { name: '橙汁3', price: 12, image: 'https://via.placeholder.com/150', category: 'drink', count: 0, description: '新鲜榨取的橙汁，清爽可口' },
-]);
+const menu = ref([]);
+const categories = ref([]);
 
 // 当前选中的菜品种类
 const activeCategory = ref('all');
-const filteredMenu = ref(menu.value);
+const filteredMenu = computed(() => {
+  if (activeCategory.value === 'all') {
+    return menu.value;
+  } else {
+    return menu.value.filter(item => item.categoryId === activeCategory.value);
+  }
+});
 
 // 购物车状态
 const cart = ref([]);
@@ -157,15 +136,13 @@ const totalPrice = computed(() => {
 // 选择菜品种类
 const filterCategory = (category) => {
   activeCategory.value = category;
-  if (category === 'all') {
-    filteredMenu.value = menu.value;
-  } else {
-    filteredMenu.value = menu.value.filter(item => item.category === category);
-  }
 };
 
 // 增加菜品份数
 const increaseCount = (item) => {
+  if (!item.count) {
+    item.count = 0;
+  }
   item.count++;
   updateCart(item);
 };
@@ -180,26 +157,26 @@ const decreaseCount = (item) => {
 
 // 更新购物车
 const updateCart = (item) => {
-  const existingItem = cart.value.find(cartItem => cartItem.name === item.name);
+  const existingItem = cart.value.find(cartItem => cartItem.dishId === item.dishId);
   if (existingItem) {
     existingItem.count = item.count;
   } else if (item.count > 0) {
     cart.value.push({ ...item });
   } else {
-    cart.value = cart.value.filter(cartItem => cartItem.name !== item.name);
+    cart.value = cart.value.filter(cartItem => cartItem.dishId !== item.dishId);
   }
 };
 
 // 下单处理
 const placeOrder = () => {
   if (cart.value.length > 0 && selectedTable.value) {
-    alert(`成功下单！桌号：${selectedTable.value} 总计：￥${totalPrice.value}`);
+    ElMessage.success(`成功下单！桌号：${selectedTable.value} 总计：￥${totalPrice.value}`);
     // 清空购物车
     cart.value = [];
     // 清空菜品数量
     menu.value.forEach(item => item.count = 0);
   } else {
-    alert("购物车为空或未输入桌号，无法下单");
+    ElMessage.warning("购物车为空或未输入桌号，无法下单");
   }
 };
 
@@ -212,13 +189,42 @@ const openItemDialog = (item) => {
 // 提示服务员正在赶来
 const handleServiceClick = () => {
   ElMessage.info('服务员正在赶来...');
-}
+};
 
 // 提示请前往前台结账
 const handleCheckoutClick = () => {
   ElMessage.info('请前往前台结账...');
-}
+};
 
+// 获取菜品数据
+const fetchDishData = async () => {
+  try {
+    const [dishesResponse, categoriesResponse] = await Promise.all([
+      api.get('/api/dishes'),
+      api.get('/api/categories')
+    ]);
+
+    if (dishesResponse.data.code === 1 && categoriesResponse.data.code === 1) {
+      menu.value = dishesResponse.data.data
+          .filter(dish => dish.isActive === 1)
+          .map(dish => ({
+            ...dish,
+            count: 0
+          }));
+      categories.value = categoriesResponse.data.data;
+    } else {
+      console.error('Failed to fetch data');
+      ElMessage.error('获取数据失败');
+    }
+  } catch (error) {
+    console.error('Error fetching data:', error);
+    ElMessage.error('获取数据失败');
+  }
+};
+
+onMounted(() => {
+  fetchDishData();
+});
 </script>
 
 
@@ -251,8 +257,8 @@ const handleCheckoutClick = () => {
 
 .category-menu .el-menu-item:hover,
 .category-menu .el-menu-item.is-active {
-  background-color: #e65100;  /* 鼠标悬停和选中时的背景颜色 */
-  color: #fff;  /* 保持字体颜色为白色 */
+  background-color: #e65100; /* 鼠标悬停和选中时的背景颜色 */
+  color: #fff; /* 保持字体颜色为白色 */
 }
 
 .sidebar h3 {
@@ -373,7 +379,7 @@ const handleCheckoutClick = () => {
   background-color: #ffcc80;
   color: white;
   box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
-  overflow-y: auto;  /* 启用垂直滚动 */
+  overflow-y: auto; /* 启用垂直滚动 */
   max-height: 730px; /* 最大高度为视口高度的70%，可以根据需要调整 */
 }
 
@@ -425,7 +431,7 @@ const handleCheckoutClick = () => {
   text-align: center;
   border-radius: 5px;
   outline: none; /* 去除焦点时的蓝色外圈 */
-  border: none;  /* 去除可能的边框 */
+  border: none; /* 去除可能的边框 */
 }
 
 .order-button:hover {
@@ -435,6 +441,7 @@ const handleCheckoutClick = () => {
 .order-button:focus {
   outline: none; /* 去除按钮被点击后的焦点边框 */
 }
+
 /* 自定义标题样式 */
 .custom-title {
   text-align: center; /* 水平居中标题 */
@@ -478,16 +485,16 @@ const handleCheckoutClick = () => {
 
 /* 橙黄色主题 */
 .table-selection .el-input {
-  background-color: #FFA500;  /* 橙黄色背景 */
-  border: 1px solid #FF8C00;  /* 深橙色边框 */
-  padding: 10px;  /* 设置padding */
-  margin-bottom: 20px;  /* 距离下方信息有一定间距 */
-  border-radius: 5px;  /* 圆角 */
+  background-color: #FFA500; /* 橙黄色背景 */
+  border: 1px solid #FF8C00; /* 深橙色边框 */
+  padding: 10px; /* 设置padding */
+  margin-bottom: 20px; /* 距离下方信息有一定间距 */
+  border-radius: 5px; /* 圆角 */
 }
 
 /* 为了使输入框内部文字颜色更好看，设置文字颜色 */
 .table-selection .el-input input {
-  color: #fff;  /* 设置文字颜色为白色 */
+  color: #fff; /* 设置文字颜色为白色 */
   font-size: 16px; /* 调整文字大小，保持一致 */
 }
 

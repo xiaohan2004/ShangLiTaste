@@ -1,15 +1,17 @@
 <script setup>
 import { ArrowDown } from '@element-plus/icons-vue'
 import { useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus' // 导入 Element Plus 的提示组件
+import { ElMessage } from 'element-plus'
+import {onMounted, ref} from "vue";
+import api from "@/api/api"; // 导入 Element Plus 的提示组件
 
 const router = useRouter()
+const username = ref('用户') // Default value
 
 // 跳转到个人信息页面
 const goToPage = (path) => {
   router.push(path)
 }
-
 
 // 登出功能
 const handleLogout = () => {
@@ -17,6 +19,45 @@ const handleLogout = () => {
   // 重定向到登录页面
   router.push('/customer-login');
 };
+
+function parseJWT(token) {
+  const parts = token.split('.');
+  if (parts.length !== 3) {
+    throw new Error('Invalid JWT format');
+  }
+
+  const header = JSON.parse(atob(parts[0]));
+  const payload = JSON.parse(atob(parts[1]));
+
+  return { header, payload };
+}
+
+const fetchUserInfo = async () => {
+  try {
+    const token = localStorage.getItem('jwt')
+    if (!token) {
+      throw new Error('No token found')
+    }
+
+    const { payload } = parseJWT(token)
+    const customerId = payload.customerId
+
+    const response = await api.get(`/api/customers/${customerId}`)
+    if (response.data.code === 1) {
+      const userData = response.data.data
+      username.value = userData.name
+    } else {
+      throw new Error(response.data.msg || 'Failed to fetch user info')
+    }
+  } catch (err) {
+    console.error('Error fetching user info:', err)
+    ElMessage.error('获取用户信息失败')
+  }
+}
+
+onMounted(() => {
+  fetchUserInfo()
+})
 
 </script>
 
@@ -28,7 +69,7 @@ const handleLogout = () => {
     <div style="width: 100px;">
       <el-dropdown>
         <span class="el-dropdown-link">
-          用户
+          {{ username }}
           <el-icon class="el-icon--right">
             <arrow-down />
           </el-icon>

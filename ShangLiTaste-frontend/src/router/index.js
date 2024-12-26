@@ -20,7 +20,7 @@ import WaiterUserInfo from "../views/Reception/WaiterUserInfo.vue";
 import CustomerLogin from "@/views/CustomerLogin.vue";
 import Selection from "@/views/Customer/Selection.vue";
 import OrderDishes from "@/views/Customer/OrderDishes.vue";
-import CustomerUserInfo from "@/views/Reception/CustomerUserInfo.vue";
+import CustomerUserInfo from "@/views/Customer/CustomerUserInfo.vue";
 import Reservation from "@/views/Customer/Reservation.vue";
 import InternalStaffRegister from "@/views/InternalStaffRegister.vue";
 import CustomerRegister from "@/views/CustomerRegister.vue";

@@ -78,7 +78,7 @@ const handleLogin = async () => {
 
   try {
     const response = await api.post(loginUrl, {
-      username: username.value,
+      name: username.value,
       password: password.value
     });
 
@@ -90,14 +90,7 @@ const handleLogin = async () => {
 
       // 保存 JWT 到本地存储，data 直接就是 JWT
       localStorage.setItem('jwt', data);
-
-
-      // 根据角色跳转到不同页面
-      if (role.value === 'admin') {
-        goToPage('/backstage/table-management');
-      } else {
-        goToPage('/reception/table-status');
-      }
+      goToPage('/customer-selection');
     } else {
       // 登录失败
       ElMessage.error(msg || '登录失败，请重试');
