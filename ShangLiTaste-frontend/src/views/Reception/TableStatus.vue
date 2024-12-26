@@ -1,103 +1,77 @@
-<script setup>
-import { ref, computed } from 'vue';
-import { ElDrawer, ElButton } from 'element-plus';
+<script>
+import axios from 'axios';
 
-// 餐桌数据（模拟数据，实际可从后端接口加载）
-const tables = ref([
-  { id: 1, status: 'empty', type: 'hall', orders: null },
-  { id: 2, status: 'occupied', type: 'hall', orders: { customer: '张三', total: 120, items: [{ name: '炒饭', price: 50 }, { name: '红烧肉', price: 70 },{ name: '红烧肉', price: 70 }
-        ,{ name: '红烧肉', price: 70 },{ name: '红烧肉', price: 70 },
-        { name: '红烧肉', price: 70 },{ name: '红烧肉', price: 70 },
-        { name: '红烧肉', price: 70 },{ name: '红烧肉', price: 70 },
-        { name: '红烧肉', price: 70 },{ name: '红烧肉', price: 70 },
-        { name: '红烧肉', price: 70 },{ name: '红烧肉', price: 70 },
-        { name: '红烧肉', price: 70 },{ name: '红烧肉', price: 70 }] } },
-  { id: 3, status: 'reserved', type: 'private', orders: null },
-  { id: 4, status: 'empty', type: 'private', orders: null },
-  { id: 5, status: 'occupied', type: 'hall', orders: { customer: '李四', total: 200, items: [{ name: '水饺', price: 100 }, { name: '小炒', price: 100 }] } },
-  { id: 6, status: 'empty', type: 'hall', orders: null },
-  { id: 7, status: 'reserved', type: 'private', orders: null },
-  { id: 8, status: 'occupied', type: 'hall', orders: { customer: '王五', total: 300, items: [{ name: '烧烤', price: 150 }, { name: '啤酒', price: 150 }] } },
-  { id: 9, status: 'empty', type: 'hall', orders: null },
-  { id: 10, status: 'reserved', type: 'private', orders: null },
-  { id: 11, status: 'occupied', type: 'hall', orders: { customer: '赵六', total: 400, items: [{ name: '麻辣烫', price: 200 }, { name: '炸鸡', price: 200 }] } },
-  { id: 12, status: 'empty', type: 'hall', orders: null },
-  { id: 13, status: 'occupied', type: 'hall', orders: { customer: '张三', total: 120, items: [{ name: '炒饭', price: 50 }, { name: '红烧肉', price: 70 },{ name: '红烧肉', price: 70 }
-        ,{ name: '红烧肉', price: 70 },{ name: '红烧肉', price: 70 },
-        { name: '红烧肉', price: 70 },{ name: '红烧肉', price: 70 },
-        { name: '红烧肉', price: 70 },{ name: '红烧肉', price: 70 },
-        { name: '红烧肉', price: 70 },{ name: '红烧肉', price: 70 },
-        { name: '红烧肉', price: 70 },{ name: '红烧肉', price: 70 },
-        { name: '红烧肉', price: 70 },{ name: '红烧肉', price: 70 }] } },
-  { id: 14, status: 'reserved', type: 'private', orders: null },
-  { id: 15, status: 'empty', type: 'private', orders: null },
-  { id: 16, status: 'occupied', type: 'hall', orders: { customer: '李四', total: 200, items: [{ name: '水饺', price: 100 }, { name: '小炒', price: 100 }] } },
-  { id: 17, status: 'empty', type: 'hall', orders: null },
-  { id: 18, status: 'reserved', type: 'private', orders: null },
-  { id: 19, status: 'occupied', type: 'hall', orders: { customer: '王五', total: 300, items: [{ name: '烧烤', price: 150 }, { name: '啤酒', price: 150 }] } },
-  { id: 20, status: 'empty', type: 'hall', orders: null },
-  { id: 21, status: 'reserved', type: 'private', orders: null },
-  { id: 22, status: 'occupied', type: 'hall', orders: { customer: '赵六', total: 400, items: [{ name: '麻辣烫', price: 200 }, { name: '炸鸡', price: 200 }] } },
-]);
+export default {
+  name: 'TableManagement',
+  data() {
+    return {
+      tables: [], // 餐桌数据
+      filterStatus: 'all', // 当前筛选状态
+      filterType: 'all', // 当前筛选位置
+      currentPage: 1, // 当前页码
+      pageSize: 40, // 每页显示的餐桌数量
+      refreshInterval: null, // 定时刷新间隔
+    };
+  },
+  computed: {
+    // 根据筛选条件过滤餐桌数据
+    filteredTables() {
+      return this.tables.filter((table) => {
+        const matchStatus = this.filterStatus === 'all' || table.status === this.filterStatus;
+        const matchType = this.filterType === 'all' || table.location === this.filterType;
+        return matchStatus && matchType;
+      });
+    },
+    // 当前页显示的餐桌数据
+    paginatedTables() {
+      const startIndex = (this.currentPage - 1) * this.pageSize;
+      return this.filteredTables.slice(startIndex, startIndex + this.pageSize);
+    }
+  },
+  methods: {
+    // 获取餐桌数据
+    fetchTables() {
+      axios.get('http://10.100.164.44:8080/api/tables')
+          .then(response => {
+            if (response.data.code === 1) {
+              this.tables = response.data.data.map(table => ({
+                tableId: table.tableId,
+                // 状态映射：0 => 空闲, 1 => 已预订, 2 => 已占用
+                status: table.status === 0 ? '空闲' : table.status === 1 ? '已预订' : '已占用',
+                // 位置映射：0 => 大厅, 1 => 包间, 2 => 私密房间
+                location: table.location === 0 ? '大厅' : table.location === 1 ? '包间' : '私密房间',
+              }));
+            } else {
+              console.error('Failed to fetch table data');
+            }
+          })
+          .catch(error => {
+            console.error('Error fetching table data:', error);
+          });
+    },
+    // 页码变动时的处理函数
+    handlePageChange(page) {
+      this.currentPage = page;
+    }
+  },
+  created() {
+    // 页面创建时加载数据
+    this.fetchTables();
 
-// 当前筛选条件
-const filterStatus = ref('all'); // 状态筛选：'all', 'empty', 'occupied', 'reserved'
-const filterType = ref('all'); // 位置筛选：'all', 'hall', 'private'
-
-// 分页设置
-const currentPage = ref(1); // 当前页码
-const pageSize = ref(40); // 每页显示的餐桌数量
-
-// 筛选后的餐桌数据
-const filteredTables = computed(() => {
-  return tables.value.filter((table) => {
-    const matchStatus = filterStatus.value === 'all' || table.status === filterStatus.value;
-    const matchType = filterType.value === 'all' || table.type === filterType.value;
-    return matchStatus && matchType;
-  });
-});
-
-// 当前页显示的餐桌数据
-const paginatedTables = computed(() => {
-  const startIndex = (currentPage.value - 1) * pageSize.value;
-  return filteredTables.value.slice(startIndex, startIndex + pageSize.value);
-});
-
-// 控制抽屉的显示
-const drawer = ref(false);
-const selectedTable = ref(null); // 当前选中的餐桌
-
-// 点击餐桌时展示订单信息
-const showTableDetails = (table) => {
-  selectedTable.value = table; // 更新选中的餐桌
-  drawer.value = true; // 显示抽屉
-};
-
-// 模拟实时更新（轮询或 WebSocket）
-setInterval(() => {
-  const randomTable = tables.value[Math.floor(Math.random() * tables.value.length)];
-  randomTable.status = ['empty', 'occupied', 'reserved'][Math.floor(Math.random() * 3)];
-}, 2000);
-
-const checkout = () => {
-  if (selectedTable.value && selectedTable.value.orders) {
-    // 结账逻辑
-    alert(`餐桌 ${selectedTable.value.id} 的订单已结账，总金额 ¥${selectedTable.value.orders.total}`);
-
-    // 将餐桌状态设置为空闲
-    selectedTable.value.status = 'empty';
-    // 清空订单信息
-    selectedTable.value.orders = null;
-    // 关闭抽屉
-    drawer.value = false;
-  } else {
-    alert('没有订单信息，无法结账！');
+    // 启动定时器，每5秒请求一次数据
+    this.refreshInterval = setInterval(() => {
+      this.fetchTables();
+    }, 5000); // 5000毫秒即5秒
+  },
+  beforeDestroy() {
+    // 在组件销毁之前清除定时器
+    if (this.refreshInterval) {
+      clearInterval(this.refreshInterval);
+    }
   }
 };
-
-
-
 </script>
+
 
 <template>
   <div class="filters">
@@ -106,12 +80,13 @@ const checkout = () => {
       <el-option value="all" label="全部位置" />
       <el-option value="hall" label="大厅" />
       <el-option value="private" label="包厢" />
+      <el-option value="privateRoom" label="私密房间" />
     </el-select>
     <el-select v-model="filterStatus" placeholder="按状态筛选" class="filter-select">
       <el-option value="all" label="全部状态" />
       <el-option value="empty" label="空闲" />
-      <el-option value="occupied" label="已占用" />
       <el-option value="reserved" label="已预订" />
+      <el-option value="occupied" label="已占用" />
     </el-select>
   </div>
 
@@ -119,50 +94,29 @@ const checkout = () => {
   <div class="grid-container">
     <div
         v-for="table in paginatedTables"
-        :key="table.id"
+        :key="table.tableId"
         class="table-item"
-        :class="table.status"
-        @click="showTableDetails(table)"
+        :class="{
+          'empty': table.status === '空闲',
+          'reserved': table.status === '已预订',
+          'occupied': table.status === '已占用'
+        }"
     >
-      <p>餐桌 {{ table.id }}</p>
-      <p>{{ table.type === 'hall' ? '大厅' : '包厢' }}</p>
+      <p>餐桌 {{ table.tableId }}</p>
+      <!-- 位置映射 -->
+      <p>{{ table.location === '大厅' ? '大厅' : table.location === '包间' ? '包间' : '私密房间' }}</p>
+      <!-- 状态映射 -->
       <p class="status">
         {{
-          table.status === 'empty'
+          table.status === '空闲'
               ? '空闲'
-              : table.status === 'occupied'
+              : table.status === '已占用'
                   ? '已占用'
                   : '已预订'
         }}
       </p>
     </div>
   </div>
-
-  <!-- 侧拉抽屉展示订单信息 -->
-  <el-drawer v-model="drawer" title="订单信息" :with-header="false" size="20%">
-    <div v-if="selectedTable && selectedTable.orders" class="drawer-content">
-      <p class="order-info">订单编号: {{ selectedTable.id }}</p>
-      <p class="order-info">餐桌编号: {{ selectedTable.id }}</p>
-      <p class="order-info">下单时间: {{ new Date().toLocaleString() }}</p>
-      <div class="order-items">
-        <p>菜品:</p>
-        <ul>
-          <li v-for="(item, index) in selectedTable.orders.items" :key="index" class="order-item">
-            <span class="item-name">{{ item.name }}</span> ..... <span class="item-price">¥{{ item.price }}</span>
-          </li>
-        </ul>
-      </div>
-      <p class="order-info total">总金额: ¥{{ selectedTable.orders.total }}</p>
-      <!-- 添加结账按钮 -->
-      <el-button type="primary" @click="checkout" class="checkout-btn">结账</el-button>
-    </div>
-    <div v-else class="drawer-content">
-      <p>该餐桌没有订单信息。</p>
-    </div>
-  </el-drawer>
-
-
-
 
   <!-- 分页组件 -->
   <el-pagination
@@ -173,6 +127,8 @@ const checkout = () => {
       class="pagination"
   ></el-pagination>
 </template>
+
+
 
 <style scoped>
 /* 筛选区域样式 */
@@ -229,140 +185,6 @@ const checkout = () => {
 .table-item:hover {
   transform: scale(1.05);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-}
-
-/* 抽屉样式 */
-.el-drawer__body {
-  padding: 20px;
-}
-
-/* 美化抽屉内容 */
-.drawer-content {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  text-align: center;
-  font-family: Arial, sans-serif;
-}
-
-.order-info {
-  margin-bottom: 10px;
-  font-size: 16px;
-  font-weight: bold;
-}
-
-/* 菜品区域 */
-.order-items {
-  margin-top: 10px;
-  width: 100%;
-  text-align: left;
-  background-color: #f9f9f9;
-  border-radius: 8px;
-  padding: 10px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  max-height: 400px;  /* 设置最大高度，根据需要调整 */
-  overflow-y: auto;   /* 超过最大高度时，启用垂直滚动 */
-}
-
-/* 自定义滚动条 */
-.order-items::-webkit-scrollbar {
-  width: 6px; /* 设置滚动条的宽度 */
-}
-
-.order-items::-webkit-scrollbar-track {
-  background: #f1f1f1; /* 滚动条轨道的背景 */
-  border-radius: 10px;  /* 轨道的圆角 */
-}
-
-.order-items::-webkit-scrollbar-thumb {
-  background-color: #888; /* 滚动条的颜色 */
-  border-radius: 10px;     /* 滚动条的圆角 */
-}
-
-.order-items::-webkit-scrollbar-thumb:hover {
-  background-color: #555; /* 滚动条在悬停时的颜色 */
-}
-
-/* 菜品项 */
-.order-item {
-  margin-bottom: 8px;
-  display: flex;
-  justify-content: space-between;
-  padding: 5px 0;
-  border-bottom: 1px solid #ddd;
-}
-
-.order-item:last-child {
-  border-bottom: none;
-}
-
-.item-name {
-  font-weight: bold;
-  flex-grow: 1;
-}
-
-.item-price {
-  color: #f56c6c;
-  font-weight: bold;
-  text-align: right;
-}
-
-
-.order-item {
-  margin-bottom: 8px;
-  display: flex;
-  justify-content: space-between;
-  padding: 5px 0;
-  border-bottom: 1px solid #ddd;
-}
-
-.order-item:last-child {
-  border-bottom: none;
-}
-
-.item-name {
-  font-weight: bold;
-  flex-grow: 1;  /* 确保名称部分占据剩余空间 */
-}
-
-.item-price {
-  color: #f56c6c;
-  font-weight: bold;
-  text-align: right;  /* 确保价格靠右显示 */
-}
-
-/* 总金额 */
-.total {
-  margin-top: 20px;
-  font-size: 18px;
-  color: #f56c6c;
-  font-weight: bold;
-}
-
-/* 结账按钮 */
-.checkout-btn {
-  margin-top: 20px; /* 距离总金额一定距离 */
-  width: 100%;      /* 宽度占满 */
-  padding: 10px;
-  font-size: 16px;
-  border-radius: 6px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-}
-
-
-
-.el-drawer__header {
-  background-color: #f7f7f7;
-  color: #333;
-  font-size: 18px;
-  font-weight: bold;
-  text-align: center;
-}
-
-.el-drawer {
-  border-radius: 8px;
-  overflow: hidden;
 }
 
 /* 分页组件样式 */

@@ -24,6 +24,8 @@ import CustomerUserInfo from "@/views/Reception/CustomerUserInfo.vue";
 import Reservation from "@/views/Customer/Reservation.vue";
 import InternalStaffRegister from "@/views/InternalStaffRegister.vue";
 import CustomerRegister from "@/views/CustomerRegister.vue";
+import CustomerDetail from "@/views/Backstage/CustomerDetail.vue";
+import DishCategory from "@/views/Backstage/DishCategory.vue";
 
 // 定义路由规则
 const routes = [
@@ -46,6 +48,8 @@ const routes = [
       { path: "report-generation-monthly", name: "ReportMonthly", component: ReportMonthly },
       { path: "report-generation-yearly", name: "ReportYearly", component: ReportYearly },
       { path: "manager-user", name: "ManagerUserInfo", component: ManagerUserInfo },
+      // { path: "customer-detail", name: "CustomerDetail", component: CustomerDetail },
+      { path: "dish-category",name: DishCategory,component: DishCategory},
     ],
   },
 

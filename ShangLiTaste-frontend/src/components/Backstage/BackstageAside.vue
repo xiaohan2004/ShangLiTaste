@@ -2,7 +2,13 @@
   <div class="sidebar">
     <el-menu default-active="1" class="el-menu-vertical-demo">
       <el-menu-item index="1" @click="goToPage('/backstage/table-management')">餐桌管理</el-menu-item>
-      <el-menu-item index="2" @click="goToPage('/backstage/dish-management')">菜品管理</el-menu-item>
+      <el-sub-menu index="2">
+        <template #title>
+          菜品管理
+        </template>
+      <el-menu-item index="2-1" @click="goToPage('/backstage/dish-management')">菜品信息</el-menu-item>
+        <el-menu-item index="2-2" @click="goToPage('/backstage/dish-category')">菜品类别</el-menu-item>
+      </el-sub-menu>
       <el-sub-menu index="3">
         <template #title>
           用户管理
@@ -18,6 +24,7 @@
         <el-menu-item index="4-2" @click="goToPage('/backstage/report-generation-monthly')">月结账单</el-menu-item>
         <el-menu-item index="4-3" @click="goToPage('/backstage/report-generation-yearly')">年结账单</el-menu-item>
       </el-sub-menu>
+<!--      <el-menu-item index="5" @click="goToPage('/backstage/customer-detail')">顾客信息</el-menu-item>-->
     </el-menu>
   </div>
 </template>

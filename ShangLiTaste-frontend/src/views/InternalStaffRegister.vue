@@ -1,24 +1,17 @@
 <script setup>
 import { ref } from 'vue';
+import axios from 'axios';  // 导入 axios
 
 // 定义表单输入数据
 const account = ref('');
-const phone = ref('');
 const password = ref('');
 const confirmPassword = ref('');
-const role = ref(''); // 角色选择
+const role = ref(''); // 角色选择，0 为管理员，1 为服务员
 
 // 定义验证函数
 const validateForm = () => {
-  if (!account.value || !phone.value || !password.value || !confirmPassword.value || !role.value) {
+  if (!account.value || !password.value || !confirmPassword.value || !role.value) {
     alert('请填写所有字段');
-    return false;
-  }
-
-  // 验证手机号格式
-  const phoneRegex = /^[0-9]{11}$/;
-  if (!phoneRegex.test(phone.value)) {
-    alert('请输入有效的手机号');
     return false;
   }
 
@@ -33,13 +26,32 @@ const validateForm = () => {
 };
 
 // 提交表单
-const handleSubmit = () => {
+const handleSubmit = async () => {
   if (validateForm()) {
-    alert('注册成功！');
-    // 在这里执行注册逻辑，例如发送到后端
+    const user = {
+      username: account.value,
+      password: password.value,
+      role: role.value === 'admin' ? 0 : 1,  // 映射为 0 或 1
+      status: 1,  // 默认设置为 1
+    };
+
+    try {
+      // 发送 POST 请求到后端 API
+      const response = await axios.post('http://10.100.164.44:8080/api/users', user);
+      if (response.data.code === 1) {
+        alert('注册成功！');
+        // 可以在这里执行成功后的跳转，例如跳转到登录页
+      } else {
+        alert('注册失败！');
+      }
+    } catch (error) {
+      console.error('注册请求失败', error);
+      alert('请求失败，请稍后再试');
+    }
   }
 };
 </script>
+
 
 <template>
   <div class="app-container">
@@ -50,10 +62,6 @@ const handleSubmit = () => {
         <div class="form-item">
           <label for="account">账号</label>
           <input type="text" id="account" v-model="account" placeholder="请输入账号" required />
-        </div>
-        <div class="form-item">
-          <label for="phone">手机号</label>
-          <input type="text" id="phone" v-model="phone" placeholder="请输入手机号" required />
         </div>
         <div class="form-item">
           <label for="password">密码</label>
