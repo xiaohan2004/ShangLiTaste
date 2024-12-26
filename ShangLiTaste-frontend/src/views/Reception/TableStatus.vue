@@ -1,5 +1,6 @@
 <script>
 import axios from 'axios';
+import api from "@/api/api";
 
 export default {
   name: 'TableManagement',
@@ -31,7 +32,7 @@ export default {
   methods: {
     // 获取餐桌数据
     fetchTables() {
-      axios.get('http://10.100.164.44:8080/api/tables')
+      api.get('/api/tables')
           .then(response => {
             if (response.data.code === 1) {
               this.tables = response.data.data.map(table => ({

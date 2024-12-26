@@ -52,6 +52,7 @@
 <script>
 
 import axios from "axios";
+import api from "@/api/api";
 
 export default {
   name: "daily",
@@ -95,7 +96,7 @@ export default {
     },
     // 获取数据
     fetchDailyData() {
-      axios.get('http://10.100.164.44:8080/api/daily-reports')  // 替换为你的后端接口地址
+      api.get('/api/daily-reports')  // 替换为你的后端接口地址
           .then(response => {
             if (response.data.code === 1) {
               this.dailyData = response.data.data.map(daily => {

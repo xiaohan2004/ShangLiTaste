@@ -205,7 +205,7 @@ export default {
       row.isEditing = true;
     },
     saveRow(row) {
-      axios.put(`http://10.100.164.44:8080/api/tables/${row.tableId}`, {
+      api.put(`/api/tables/${row.tableId}`, {
         tableId: row.tableId,
         status: row.status === '空闲' ? 0 : row.status === '已预定' ? 1 : 2,
         location: row.location === '大厅' ? 0 : row.location === '包间' ? 1 : 2,
@@ -225,7 +225,7 @@ export default {
           });
     },
     deleteRow(row) {
-      axios.delete(`http://10.100.164.44:8080/api/tables/${row.tableId}`)
+      api.delete(`/api/tables/${row.tableId}`)
           .then(response => {
             if (response.data.code === 1) {
               const index = this.tableData.indexOf(row);
@@ -259,7 +259,7 @@ export default {
     },
     submitNewTable() {
       this.isLoading = true;
-      axios.post('http://10.100.164.44:8080/api/tables', {
+      api.post('/api/tables', {
         status: this.newTable.status === '空闲' ? 0 : this.newTable.status === '已预订' ? 1 : 2,
         location: this.newTable.location === '大厅' ? 0 : this.newTable.location === '包间' ? 1 : 2,
       })
