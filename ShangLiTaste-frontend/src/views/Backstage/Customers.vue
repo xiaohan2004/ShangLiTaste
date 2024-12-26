@@ -184,6 +184,7 @@
 <script>
 import axios from "axios";
 import { ElMessage } from 'element-plus';
+import api from "@/api/api";
 
 export default {
   name: "CustomerManagement",
@@ -217,7 +218,7 @@ export default {
   },
   methods: {
     fetchCustomerData() {
-      axios.get('http://10.100.164.44:8080/api/customers')
+      api.get('/api/customers')
           .then(response => {
             if (response.data.code === 1) {
               this.customerData = response.data.data.map(customer => ({
@@ -246,7 +247,7 @@ export default {
       row.isEditing = true;
     },
     saveRow(row) {
-      axios.put(`http://10.100.164.44:8080/api/customers/${row.customerId}`, {
+      api.put(`/api/customers/${row.customerId}`, {
         customerId: row.customerId,
         name: row.name,
         phone: row.phone,

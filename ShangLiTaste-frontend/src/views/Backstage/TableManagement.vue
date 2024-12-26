@@ -146,6 +146,7 @@
 <script>
 import axios from "axios";
 import { ElMessage } from 'element-plus';
+import api from "@/api/api";
 
 export default {
   name: "internal-staff",
@@ -183,7 +184,7 @@ export default {
   },
   methods: {
     fetchTableData() {
-      axios.get('http://10.100.164.44:8080/api/tables')
+      api.get('/api/tables')
           .then(response => {
             if (response.data.code === 1) {
               this.tableData = response.data.data.map(table => ({
