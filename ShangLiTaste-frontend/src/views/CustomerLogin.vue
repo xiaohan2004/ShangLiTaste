@@ -55,9 +55,10 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
-import { ElMessage } from 'element-plus';
-import { useRouter } from 'vue-router';
+import {ref} from 'vue';
+import {ElMessage} from 'element-plus';
+import {useRouter} from 'vue-router';
+import api from "@/api/api";
 
 // 表单数据
 const username = ref('');
@@ -67,17 +68,44 @@ const password = ref('');
 const router = useRouter();
 
 // 登录方法
-const handleLogin = () => {
+const handleLogin = async () => {
   if (!username.value || !password.value) {
     ElMessage.error('请输入账号和密码');
     return;
   }
 
-  ElMessage.success('登录成功！');
-  goToPage('/customer-selection'); // 登录成功跳转到对应页面
+  let loginUrl = '/customerlogin'; // Remove the base URL as it's already set in the api instance
 
-  // 打印登录信息
-  console.log('登录信息：', { username: username.value, password: password.value });
+  try {
+    const response = await api.post(loginUrl, {
+      username: username.value,
+      password: password.value
+    });
+
+    const {code, msg, data} = response.data;
+
+    if (code === 1) {
+      // 登录成功
+      ElMessage.success(`登录成功！欢迎你，${username.value}`);
+
+      // 保存 JWT 到本地存储，data 直接就是 JWT
+      localStorage.setItem('jwt', data);
+
+
+      // 根据角色跳转到不同页面
+      if (role.value === 'admin') {
+        goToPage('/backstage/table-management');
+      } else {
+        goToPage('/reception/table-status');
+      }
+    } else {
+      // 登录失败
+      ElMessage.error(msg || '登录失败，请重试');
+    }
+  } catch (error) {
+    console.error('登录请求失败:', error);
+    ElMessage.error('登录请求失败，请检查网络连接');
+  }
 };
 
 // 跳转方法
