@@ -36,12 +36,12 @@
               <el-input v-model="formData.address" />
             </el-form-item>
             <el-form-item label="注册日期" class="form-item">
-              <el-input v-model="formData.registrationDate" disabled />
+              <el-input :value="formatDate(formData.registrationDate)" disabled />
             </el-form-item>
           </div>
           <div class="form-row">
             <el-form-item label="客户生日" class="form-item">
-              <el-date-picker v-model="formData.birthday" type="date" placeholder="选择日期" style="width: 100%;" />
+              <el-date-picker v-model="formData.birthday" type="date" placeholder="选择日期" style="width: 100%;" value-format="yyyy-MM-dd" />
             </el-form-item>
             <el-form-item label="累计消费金额" class="form-item">
               <el-input v-model="formData.totalSpent" disabled />
@@ -64,7 +64,7 @@
       <div v-if="activeTab === 'history'" class="purchase-history">
         <h2 class="section-title">消费历史</h2>
         <el-table :data="purchaseHistory" style="width: 100%">
-          <el-table-column prop="recordId" label="消费记录编号" width="180"></el-table-column>
+          <el-table-column prop="purchaseId" label="消费记录编号" width="180"></el-table-column>
           <el-table-column prop="orderId" label="订单编号" width="180"></el-table-column>
           <el-table-column prop="purchaseDate" label="消费日期"></el-table-column>
           <el-table-column prop="totalAmount" label="总金额" width="150"></el-table-column>
@@ -80,20 +80,17 @@ import { ref, onMounted } from 'vue';
 import { ElMessage, ElSkeleton } from 'element-plus';
 import api from '@/api/api';
 
-// Simple JWT parsing function
-const parseJWT = (token) => {
-  try {
-    const base64Url = token.split('.')[1];
-    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-    const jsonPayload = decodeURIComponent(atob(base64).split('').map((c) => {
-      return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-    }).join(''));
-    return { payload: JSON.parse(jsonPayload) };
-  } catch (e) {
-    console.error('Error parsing JWT:', e);
-    return null;
+function parseJWT(token) {
+  const parts = token.split('.');
+  if (parts.length !== 3) {
+    throw new Error('Invalid JWT format');
   }
-};
+
+  const header = JSON.parse(atob(parts[0]));
+  const payload = JSON.parse(atob(parts[1]));
+
+  return { header, payload };
+}
 
 // 基本信息数据
 const formData = ref({
@@ -105,7 +102,6 @@ const formData = ref({
   registrationDate: '',
   birthday: '',
   totalSpent: '',
-  password: '',
   newPassword: '',
   confirmPassword: ''
 });
@@ -135,11 +131,8 @@ const fetchCustomerInfo = async () => {
       throw new Error('No token found');
     }
 
-    const parsed = parseJWT(token);
-    if (!parsed) {
-      throw new Error('Invalid token');
-    }
-    const customerId = parsed.payload.customerId;
+    const { payload } = parseJWT(token);
+    const customerId = payload.customerId;
 
     const response = await api.get(`/api/customers/${customerId}`);
     if (response.data.code === 1) {
@@ -150,13 +143,13 @@ const fetchCustomerInfo = async () => {
         phone: customerData.phone,
         email: customerData.email,
         address: customerData.address,
-        registrationDate: new Date(customerData.registrationDate).toLocaleDateString(),
+        registrationDate: formatDate(customerData.registrationDate),
         birthday: customerData.birthday,
         totalSpent: customerData.totalSpent.toFixed(2),
-        password: '', // Password field is empty by default
         newPassword: '',
         confirmPassword: ''
       };
+      return customerData;
     } else {
       throw new Error(response.data.msg || 'Failed to fetch customer info');
     }
@@ -177,15 +170,16 @@ const fetchPurchaseHistory = async () => {
       throw new Error('No token found');
     }
 
-    const parsed = parseJWT(token);
-    if (!parsed) {
-      throw new Error('Invalid token');
-    }
-    const customerId = parsed.payload.customerId;
+    const { payload } = parseJWT(token);
+    const customerId = payload.customerId;
 
-    const response = await api.get(`/api/customers/${customerId}/purchase-history`);
+    const response = await api.get(`/api/purchase-history/customer/${customerId}`);
     if (response.data.code === 1) {
-      purchaseHistory.value = response.data.data;
+      purchaseHistory.value = response.data.data.map(item => ({
+        ...item,
+        purchaseDate: formatDate(item.purchaseDate),
+        paymentMethod: formatPaymentMethod(item.paymentMethod)
+      }));
     } else {
       throw new Error(response.data.msg || 'Failed to fetch purchase history');
     }
@@ -195,13 +189,37 @@ const fetchPurchaseHistory = async () => {
   }
 };
 
+const formatPaymentMethod = (method) => {
+  const methods = {
+    0: '现金',
+    1: '信用卡',
+    2: '借记卡',
+    3: '电子支付'
+  };
+  return methods[method] || '未知';
+};
+
 // 更新用户信息
 const updateInfo = async () => {
   try {
-    // 创建一个新对象，只包含需要更新的字段
-    const updateData = { ...formData.value };
+    const token = localStorage.getItem('jwt');
+    if (!token) {
+      throw new Error('No token found');
+    }
 
-    // 如果设置了新密码，则包含在更新数据中
+    const { payload } = parseJWT(token);
+    const customerId = payload.customerId;
+
+    const updateData = {
+      name: formData.value.name,
+      phone: formData.value.phone,
+      email: formData.value.email,
+      address: formData.value.address,
+      birthday: formData.value.birthday,
+      registrationDate: formData.value.registrationDate,
+      totalSpent: parseFloat(formData.value.totalSpent)
+    };
+
     if (formData.value.newPassword) {
       if (formData.value.newPassword !== formData.value.confirmPassword) {
         ElMessage.error('新密码和确认密码不匹配');
@@ -210,22 +228,22 @@ const updateInfo = async () => {
       updateData.password = formData.value.newPassword;
     }
 
-    // 删除不需要发送到后端的字段
-    delete updateData.newPassword;
-    delete updateData.confirmPassword;
+    console.log('Sending update data:', updateData); // Add this line for debugging
 
-    const response = await api.put(`/api/customers/${formData.value.customerId}`, updateData);
+    const response = await api.put(`/api/customers/${customerId}`, updateData);
     if (response.data.code === 1) {
       ElMessage.success('信息已更新!');
-      // 清空密码字段
       formData.value.newPassword = '';
       formData.value.confirmPassword = '';
+
+      // 重新获取用户信息以确保数据是最新的
+      await fetchCustomerInfo();
     } else {
       throw new Error(response.data.msg || 'Failed to update customer info');
     }
   } catch (err) {
     console.error('Error updating customer info:', err);
-    ElMessage.error('更新信息失败');
+    ElMessage.error('更新信息失败: ' + (err.response?.data?.msg || err.message));
   }
 };
 
@@ -233,7 +251,20 @@ onMounted(() => {
   fetchCustomerInfo();
   fetchPurchaseHistory();
 });
+
+const formatDate = (dateString) => {
+  if (!dateString) return '';
+  const date = new Date(dateString);
+  return date.getFullYear() + '-' +
+      String(date.getMonth() + 1).padStart(2, '0') + '-' +
+      String(date.getDate()).padStart(2, '0') + 'T' +
+      String(date.getHours()).padStart(2, '0') + ':' +
+      String(date.getMinutes()).padStart(2, '0') + ':' +
+      String(date.getSeconds()).padStart(2, '0');
+};
 </script>
+
+
 
 <style scoped>
 .profile-container {

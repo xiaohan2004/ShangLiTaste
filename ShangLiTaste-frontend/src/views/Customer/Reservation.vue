@@ -28,16 +28,17 @@
     <div class="reservation-form">
       <!-- 选择区域 -->
       <el-form-item label="选择区域">
-        <el-select v-model="reservation.area" placeholder="请选择预定区域" @change="filterTables">
-          <el-option label="大厅" value="hall" />
-          <el-option label="包厢" value="private" />
+        <el-select v-model="reservation.area" placeholder="请选择预定区域" @change="handleAreaChange">
+          <el-option label="大厅" value="0" />
+          <el-option label="包间" value="1" />
+          <el-option label="私密房间" value="2" />
         </el-select>
       </el-form-item>
 
       <!-- 餐桌选择 -->
       <el-form-item label="选择餐桌">
-        <el-select v-model="reservation.tableNumber" placeholder="请选择餐桌" :disabled="!reservation.area">
-          <el-option v-for="table in filteredTables" :key="table.id" :label="table.name" :value="table.id" />
+        <el-select v-model="reservation.tableId" placeholder="请选择餐桌" :disabled="!reservation.area">
+          <el-option v-for="table in filteredTables" :key="table.tableId" :label="table.tableId.toString()" :value="table.tableId" />
         </el-select>
       </el-form-item>
 
@@ -53,7 +54,7 @@
 
       <!-- 预定需求 -->
       <el-form-item label="预定需求">
-        <el-input v-model="reservation.specialRequest" placeholder="请输入您的特殊需求（例如，过敏信息、座位要求等）" />
+        <el-input v-model="reservation.specialRequests" placeholder="请输入您的特殊需求（例如，过敏信息、座位要求等）" />
       </el-form-item>
 
       <!-- 提交按钮 -->
@@ -65,10 +66,11 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 import { ArrowDown } from '@element-plus/icons-vue'
 import { useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus' // 导入 Element Plus 的提示组件
+import { ElMessage } from 'element-plus'
+import api from '@/api/api'
 
 const router = useRouter()
 
@@ -77,32 +79,68 @@ const goToPage = (path) => {
   router.push(path)
 }
 
+// JWT解析函数
+function parseJWT(token) {
+  const parts = token.split('.');
+  if (parts.length !== 3) {
+    throw new Error('Invalid JWT format');
+  }
+
+  const payload = JSON.parse(atob(parts[1]));
+  return payload;
+}
+
 // 预定数据
 const reservation = ref({
-  area: '', // 区域（大厅/包厢）
-  tableNumber: '', // 桌号
-  reservationTime: '', // 预定时间
-  specialRequest: '', // 特殊需求
+  customerId: null,
+  area: '',
+  tableId: null,
+  reservationTime: '',
+  specialRequests: '',
+  status: 0 // 默认状态为0（待确认）
 });
 
-// 模拟餐桌数据
-const tables = ref([
-  { id: 1, name: '桌子1', area: 'hall' },
-  { id: 2, name: '桌子2', area: 'hall' },
-  { id: 3, name: '桌子3', area: 'private' },
-  { id: 4, name: '桌子4', area: 'private' },
-]);
+// 餐桌数据
+const tables = ref([]);
 
 // 当前选择的区域对应的桌号
 const filteredTables = ref([]);
 
+// 获取餐桌数据
+const fetchTableData = async () => {
+  try {
+    const response = await api.get('/api/tables');
+    if (response.data.code === 1) {
+      tables.value = response.data.data.map(table => ({
+        tableId: table.tableId,
+        status: table.status,
+        location: table.location
+      }));
+    } else {
+      console.error('Failed to fetch table data');
+      ElMessage.error('获取餐桌数据失败');
+    }
+  } catch (error) {
+    console.error('Error fetching table data:', error);
+    ElMessage.error('获取餐桌数据失败');
+  }
+};
+
 // 根据区域筛选桌号
 const filterTables = () => {
-  if (reservation.value.area) {
-    filteredTables.value = tables.value.filter(table => table.area === reservation.value.area);
+  if (reservation.value.area !== '') {
+    filteredTables.value = tables.value.filter(table =>
+        table.location.toString() === reservation.value.area && table.status === 0
+    );
   } else {
     filteredTables.value = [];
   }
+};
+
+// 处理区域变化
+const handleAreaChange = () => {
+  reservation.value.tableId = null; // 重置选中的餐桌
+  filterTables();
 };
 
 // 禁止选择过去的日期
@@ -119,12 +157,12 @@ const formatDate = (date) => {
   const minutes = String(date.getMinutes()).padStart(2, '0');
   const seconds = String(date.getSeconds()).padStart(2, '0');
 
-  return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+  return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
 };
 
 // 提交预定
-const submitReservation = () => {
-  if (!reservation.value.tableNumber || !reservation.value.reservationTime) {
+const submitReservation = async () => {
+  if (!reservation.value.tableId || !reservation.value.reservationTime) {
     return ElMessage.error('请填写完整的预定信息');
   }
 
@@ -134,10 +172,39 @@ const submitReservation = () => {
   // 将格式化后的时间更新到reservation对象中
   reservation.value.reservationTime = formattedTime;
 
-  // 提交逻辑，例如发请求保存预定信息
-  console.log('预定信息:', reservation.value);
-  ElMessage.success('预定成功！');
+  try {
+    const token = localStorage.getItem('jwt');
+    if (!token) {
+      throw new Error('No token found');
+    }
+
+    const payload = parseJWT(token);
+    reservation.value.customerId = payload.customerId;
+
+    const response = await api.post('/api/reservations', reservation.value);
+    if (response.data.code === 1) {
+      ElMessage.success('预定成功！');
+      // 重置表单
+      reservation.value = {
+        customerId: null,
+        area: '',
+        tableId: null,
+        reservationTime: '',
+        specialRequests: '',
+        status: 0
+      };
+    } else {
+      throw new Error(response.data.msg || 'Failed to submit reservation');
+    }
+  } catch (error) {
+    console.error('Error submitting reservation:', error);
+    ElMessage.error('预定失败，请稍后重试');
+  }
 };
+
+onMounted(() => {
+  fetchTableData();
+});
 </script>
 
 <style scoped>
