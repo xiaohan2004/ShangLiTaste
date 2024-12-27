@@ -28,6 +28,7 @@ public class UserLoginController {
         //登录成功,生成令牌,下发令牌
         if (u != null){
             Map<String, Object> claims = new HashMap<>();
+            claims.put("userId", u.getUserId());
             claims.put("username", u.getUsername());
             claims.put("role", u.getRole());
             claims.put("status", u.getStatus());

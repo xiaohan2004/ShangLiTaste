@@ -249,7 +249,7 @@ export default {
         }
       } catch (error) {
         console.error('Error uploading image:', error);
-        ElMessage.error('图片上传失败');
+        ElMessage.error('图片大小过大，上传失败');
         throw error;
       }
     },
