@@ -7,7 +7,7 @@
       <div style="width: 100px;">
         <el-dropdown>
           <span class="el-dropdown-link">
-            用户
+            {{ username }}
             <el-icon class="el-icon--right">
               <arrow-down />
             </el-icon>
@@ -25,7 +25,11 @@
     <!-- 标题 -->
     <h2 class="reservation-title">在线预定~o( =∩ω∩= )m</h2>
 
-    <div class="reservation-form">
+    <div v-if="hasPendingReservation" class="pending-reservation-warning">
+      您已有一个待确认的预订。在此预订完成之前，无法进行新的预订。
+    </div>
+
+    <div v-else class="reservation-form">
       <!-- 选择区域 -->
       <el-form-item label="选择区域">
         <el-select v-model="reservation.area" placeholder="请选择预定区域" @change="handleAreaChange">
@@ -73,6 +77,7 @@ import { ElMessage } from 'element-plus'
 import api from '@/api/api'
 
 const router = useRouter()
+const username = ref('用户') // Default value
 
 // 跳转到个人信息页面
 const goToPage = (path) => {
@@ -86,9 +91,61 @@ function parseJWT(token) {
     throw new Error('Invalid JWT format');
   }
 
+  const header = JSON.parse(atob(parts[0]));
   const payload = JSON.parse(atob(parts[1]));
-  return payload;
+  return { header, payload };
 }
+
+const fetchUserInfo = async () => {
+  try {
+    const token = localStorage.getItem('jwt')
+    if (!token) {
+      throw new Error('No token found')
+    }
+
+    const { payload } = parseJWT(token)
+    const customerId = payload.customerId
+
+    const response = await api.get(`/api/customers/${customerId}`)
+    if (response.data.code === 1) {
+      const userData = response.data.data
+      username.value = userData.name
+    } else {
+      throw new Error(response.data.msg || 'Failed to fetch user info')
+    }
+  } catch (err) {
+    console.error('Error fetching user info:', err)
+    ElMessage.error('获取用户信息失败')
+  }
+}
+const checkPendingReservations = async () => {
+  try {
+    const token = localStorage.getItem('jwt')
+    if (!token) {
+      throw new Error('No token found')
+    }
+
+    const { payload } = parseJWT(token)
+    const customerId = payload.customerId
+    const hasPendingReservation = ref(false)
+
+    const response = await api.get(`/api/reservations/customer/${customerId}`)
+    if (response.data.code === 1) {
+      hasPendingReservation.value = response.data.data.length >0
+    } else {
+      throw new Error(response.data.msg || 'Failed to fetch pending reservations')
+    }
+  } catch (err) {
+    console.error('Error checking pending reservations:', err)
+    ElMessage.error('检查待处理预订时出错')
+  }
+}
+
+onMounted(() => {
+  fetchUserInfo()
+  checkPendingReservations()
+})
+
 
 // 预定数据
 const reservation = ref({
@@ -193,6 +250,8 @@ const submitReservation = async () => {
         specialRequests: '',
         status: 0
       };
+      // 刷新页面
+      window.location.reload();
     } else {
       throw new Error(response.data.msg || 'Failed to submit reservation');
     }
