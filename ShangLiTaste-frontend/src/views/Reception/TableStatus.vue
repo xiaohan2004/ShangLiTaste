@@ -11,7 +11,7 @@ export default {
       filterType: 'all', // 当前筛选位置
       currentPage: 1, // 当前页码
       pageSize: 40, // 每页显示的餐桌数量
-      refreshInterval: null, // 定时刷新间隔
+      // refreshInterval: null, // 定时刷新间隔
     };
   },
   computed: {
@@ -59,16 +59,16 @@ export default {
     // 页面创建时加载数据
     this.fetchTables();
 
-    // 启动定时器，每5秒请求一次数据
-    this.refreshInterval = setInterval(() => {
-      this.fetchTables();
-    }, 5000); // 5000毫秒即5秒
+    // // 启动定时器，每5秒请求一次数据
+    // this.refreshInterval = setInterval(() => {
+    //   this.fetchTables();
+    // }, 5000); // 5000毫秒即5秒
   },
   beforeDestroy() {
-    // 在组件销毁之前清除定时器
-    if (this.refreshInterval) {
-      clearInterval(this.refreshInterval);
-    }
+    // // 在组件销毁之前清除定时器
+    // if (this.refreshInterval) {
+    //   clearInterval(this.refreshInterval);
+    // }
   }
 };
 </script>

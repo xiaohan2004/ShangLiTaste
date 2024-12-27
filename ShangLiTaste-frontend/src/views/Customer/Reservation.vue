@@ -9,13 +9,13 @@
           <span class="el-dropdown-link">
             {{ username }}
             <el-icon class="el-icon--right">
-              <arrow-down />
+              <arrow-down/>
             </el-icon>
           </span>
           <template #dropdown>
             <el-dropdown-menu>
               <el-dropdown-item @click="goToPage('/customer/customer-user')">个人信息</el-dropdown-item>
-              <el-dropdown-item @click="goToPage('/customer-login')">退出登录</el-dropdown-item>
+              <el-dropdown-item @click="handleLogout">退出登录</el-dropdown-item>
             </el-dropdown-menu>
           </template>
         </el-dropdown>
@@ -27,22 +27,28 @@
 
     <div v-if="hasPendingReservation" class="pending-reservation-warning">
       您已有一个待确认的预订。在此预订完成之前，无法进行新的预订。
+      <div class="pending-reservation-details">
+        预订时间: {{ formatDateTime(pendingReservation.reservationTime) }}
+        <br>
+        特殊要求: {{ pendingReservation.specialRequests }}
+      </div>
     </div>
 
     <div v-else class="reservation-form">
       <!-- 选择区域 -->
       <el-form-item label="选择区域">
         <el-select v-model="reservation.area" placeholder="请选择预定区域" @change="handleAreaChange">
-          <el-option label="大厅" value="0" />
-          <el-option label="包间" value="1" />
-          <el-option label="私密房间" value="2" />
+          <el-option label="大厅" value="0"/>
+          <el-option label="包间" value="1"/>
+          <el-option label="私密房间" value="2"/>
         </el-select>
       </el-form-item>
 
       <!-- 餐桌选择 -->
       <el-form-item label="选择餐桌">
         <el-select v-model="reservation.tableId" placeholder="请选择餐桌" :disabled="!reservation.area">
-          <el-option v-for="table in filteredTables" :key="table.tableId" :label="table.tableId.toString()" :value="table.tableId" />
+          <el-option v-for="table in filteredTables" :key="table.tableId" :label="table.tableId.toString()"
+                     :value="table.tableId"/>
         </el-select>
       </el-form-item>
 
@@ -58,7 +64,7 @@
 
       <!-- 预定需求 -->
       <el-form-item label="预定需求">
-        <el-input v-model="reservation.specialRequests" placeholder="请输入您的特殊需求（例如，过敏信息、座位要求等）" />
+        <el-input v-model="reservation.specialRequests" placeholder="请输入您的特殊需求（例如，过敏信息、座位要求等）"/>
       </el-form-item>
 
       <!-- 提交按钮 -->
@@ -70,19 +76,28 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
-import { ArrowDown } from '@element-plus/icons-vue'
-import { useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus'
+import {ref, onMounted, computed, watch} from 'vue';
+import {ArrowDown} from '@element-plus/icons-vue'
+import {useRouter} from 'vue-router'
+import {ElMessage} from 'element-plus'
 import api from '@/api/api'
 
 const router = useRouter()
 const username = ref('用户') // Default value
+const hasPendingReservation = ref(false)
+const pendingReservation = ref(null)
 
 // 跳转到个人信息页面
 const goToPage = (path) => {
   router.push(path)
 }
+
+// 登出功能
+const handleLogout = () => {
+  localStorage.removeItem('jwt');
+  // 重定向到登录页面
+  router.push('/customer-login');
+};
 
 // JWT解析函数
 function parseJWT(token) {
@@ -93,7 +108,7 @@ function parseJWT(token) {
 
   const header = JSON.parse(atob(parts[0]));
   const payload = JSON.parse(atob(parts[1]));
-  return { header, payload };
+  return {header, payload};
 }
 
 const fetchUserInfo = async () => {
@@ -103,7 +118,7 @@ const fetchUserInfo = async () => {
       throw new Error('No token found')
     }
 
-    const { payload } = parseJWT(token)
+    const {payload} = parseJWT(token)
     const customerId = payload.customerId
 
     const response = await api.get(`/api/customers/${customerId}`)
@@ -118,6 +133,7 @@ const fetchUserInfo = async () => {
     ElMessage.error('获取用户信息失败')
   }
 }
+
 const checkPendingReservations = async () => {
   try {
     const token = localStorage.getItem('jwt')
@@ -125,15 +141,25 @@ const checkPendingReservations = async () => {
       throw new Error('No token found')
     }
 
-    const { payload } = parseJWT(token)
+    const {payload} = parseJWT(token)
     const customerId = payload.customerId
-    const hasPendingReservation = ref(false)
 
     const response = await api.get(`/api/reservations/customer/${customerId}`)
+    console.log('API response:', response.data)
     if (response.data.code === 1) {
-      hasPendingReservation.value = response.data.data.length >0
+      // 检查 response.data.data 是否为对象（单个预订）
+      if (typeof response.data.data === 'object' && response.data.data !== null) {
+        hasPendingReservation.value = true
+        pendingReservation.value = response.data.data
+      } else {
+        hasPendingReservation.value = false
+        pendingReservation.value = null
+      }
+      console.log('hasPendingReservation:', hasPendingReservation.value)
+      console.log('pendingReservation:', pendingReservation.value)
     } else {
-      throw new Error(response.data.msg || 'Failed to fetch pending reservations')
+      console.error('Unexpected API response:', response.data)
+      ElMessage.error(`检查待处理预订时出错: ${response.data.msg || '未知错误'}`)
     }
   } catch (err) {
     console.error('Error checking pending reservations:', err)
@@ -142,10 +168,16 @@ const checkPendingReservations = async () => {
 }
 
 onMounted(() => {
-  fetchUserInfo()
-  checkPendingReservations()
+  setTimeout(() => {
+    fetchUserInfo();
+    checkPendingReservations();
+    fetchTableData();
+  }, 300);  // 2000ms（2秒）后执行回调函数
 })
 
+watch(() => localStorage.getItem('jwt'), () => {
+  checkPendingReservations()
+})
 
 // 预定数据
 const reservation = ref({
@@ -217,6 +249,18 @@ const formatDate = (date) => {
   return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
 };
 
+// 格式化日期时间显示
+const formatDateTime = (dateTimeString) => {
+  const date = new Date(dateTimeString);
+  return date.toLocaleString('zh-CN', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+};
+
 // 提交预定
 const submitReservation = async () => {
   if (!reservation.value.tableId || !reservation.value.reservationTime) {
@@ -235,8 +279,12 @@ const submitReservation = async () => {
       throw new Error('No token found');
     }
 
-    const payload = parseJWT(token);
+    const {payload} = parseJWT(token);
     reservation.value.customerId = payload.customerId;
+    console.log('Submitting reservation:', payload.customerId);
+    console.log('Submitting reservation:', payload.name);
+    console.log('Submitting reservation:', payload.username);
+    console.log('Submitting reservation:', reservation.value);
 
     const response = await api.post('/api/reservations', reservation.value);
     if (response.data.code === 1) {
@@ -260,10 +308,6 @@ const submitReservation = async () => {
     ElMessage.error('预定失败，请稍后重试');
   }
 };
-
-onMounted(() => {
-  fetchTableData();
-});
 </script>
 
 <style scoped>
@@ -277,7 +321,6 @@ onMounted(() => {
   min-height: 100vh;
   height: 100% !important;
 }
-
 
 .reservation-title {
   font-size: 32px;
@@ -315,10 +358,10 @@ onMounted(() => {
 }
 
 .header {
-  width: 100%;  /* 占满整行 */
+  width: 100%; /* 占满整行 */
   height: 60px; /* 调整头栏高度，增加一些空间 */
   position: fixed; /* 固定在页面顶部 */
-  top: 0;  /* 置顶 */
+  top: 0; /* 置顶 */
   left: 0; /* 确保从左侧开始 */
   border-bottom: 1px solid #ccc;
   display: flex;
@@ -330,18 +373,6 @@ onMounted(() => {
   background-size: 10px 10px; /* 控制波点大小 */
   z-index: 1000; /* 保证头部在最上层 */
 }
-
-.el-dropdown-link:focus {
-  outline: none;
-}
-
-.example-showcase .el-dropdown-link {
-  cursor: pointer;
-  color: var(--el-color-primary);
-  display: flex;
-  align-items: center;
-}
-
 
 .el-dropdown-link:focus {
   outline: none;
@@ -380,5 +411,21 @@ onMounted(() => {
 .circle-btn:hover {
   background-color: #ffe0b2; /* 悬停时稍微深一些的黄色 */
 }
-</style>
 
+.pending-reservation-warning {
+  background-color: #fff3cd;
+  border: 1px solid #ffeeba;
+  color: #856404;
+  padding: 15px;
+  margin-bottom: 20px;
+  border-radius: 4px;
+  width: 100%;
+  max-width: 600px;
+}
+
+.pending-reservation-details {
+  margin-top: 10px;
+  font-size: 0.9em;
+  color: #666;
+}
+</style>

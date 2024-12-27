@@ -10,9 +10,6 @@
       <el-form-item label="操作方法名">
         <el-input v-model="filterForm.methodName" placeholder="输入操作方法名"></el-input>
       </el-form-item>
-      <el-form-item label="操作方法参数">
-        <el-input v-model="filterForm.methodParams" placeholder="输入操作方法参数"></el-input>
-      </el-form-item>
       <el-form-item label="操作时间">
         <el-date-picker
             v-model="filterForm.dateRange"
@@ -38,18 +35,17 @@
         @sort-change="handleSortChange"
     >
       <el-table-column prop="id" label="ID" width="80" align="center"/>
-      <el-table-column prop="operateUser" label="操作人" min-width="120" align="center"/>
-      <el-table-column prop="operateTime" label="操作时间" min-width="180" align="center">
+      <el-table-column prop="operateUser" label="操作人" min-width="150" align="center"/>
+      <el-table-column prop="operateTime" label="操作时间" min-width="200" align="center">
         <template #default="scope">
           <el-tag size="small" effect="plain">
             {{ formatDate(scope.row.operateTime) }}
           </el-tag>
         </template>
       </el-table-column>
-      <el-table-column prop="className" label="操作类名" min-width="200" show-overflow-tooltip/>
-      <el-table-column prop="methodName" label="操作方法名" min-width="200" show-overflow-tooltip/>
-      <el-table-column prop="methodParams" label="操作方法参数" min-width="250" show-overflow-tooltip/>
-      <el-table-column prop="costTime" label="操作耗时(ms)" min-width="120" align="center" sortable="custom">
+      <el-table-column prop="className" label="操作类名" min-width="250" show-overflow-tooltip/>
+      <el-table-column prop="methodName" label="操作方法名" min-width="250" show-overflow-tooltip/>
+      <el-table-column prop="costTime" label="操作耗时(ms)" min-width="150" align="center" sortable="custom">
         <template #default="scope">
           <el-tag :type="getTimeType(scope.row.costTime)" size="small">
             {{ scope.row.costTime }}
@@ -64,7 +60,7 @@
           @size-change="handleSizeChange"
           @current-change="handleCurrentChange"
           :current-page="currentPage"
-          :page-sizes="[10, 20, 50, 100]"
+          :page-sizes="[15, 20, 50, 100]"
           :page-size="pageSize"
           layout="total, sizes, prev, pager, next, jumper"
           :total="filteredAndSortedLogData.length"
@@ -111,12 +107,11 @@ export default {
     return {
       logData: [],
       currentPage: 1,
-      pageSize: 10,
+      pageSize: 15,
       filterForm: {
         operateUser: '',
         className: '',
         methodName: '',
-        methodParams: '',
         dateRange: []
       },
       sortBy: 'costTime',
@@ -129,7 +124,6 @@ export default {
         const operateUserMatch = (log.operateUser || '').toLowerCase().includes(this.filterForm.operateUser.toLowerCase());
         const classNameMatch = (log.className || '').toLowerCase().includes(this.filterForm.className.toLowerCase());
         const methodNameMatch = (log.methodName || '').toLowerCase().includes(this.filterForm.methodName.toLowerCase());
-        const methodParamsMatch = (log.methodParams || '').toLowerCase().includes(this.filterForm.methodParams.toLowerCase());
 
         let dateMatch = true;
         if (this.filterForm.dateRange && this.filterForm.dateRange.length === 2) {
@@ -139,7 +133,7 @@ export default {
           dateMatch = logDate >= startDate && logDate <= endDate;
         }
 
-        return operateUserMatch && classNameMatch && methodNameMatch && methodParamsMatch && dateMatch;
+        return operateUserMatch && classNameMatch && methodNameMatch && dateMatch;
       }).sort((a, b) => {
         const aValue = a[this.sortBy] || 0;
         const bValue = b[this.sortBy] || 0;
@@ -202,7 +196,6 @@ export default {
         operateUser: '',
         className: '',
         methodName: '',
-        methodParams: '',
         dateRange: []
       };
       this.currentPage = 1;
@@ -256,3 +249,4 @@ export default {
   justify-content: flex-end;
 }
 </style>
+

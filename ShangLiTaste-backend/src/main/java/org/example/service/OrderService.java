@@ -9,5 +9,6 @@ public interface OrderService {
     void addOrder(Order order);
     void updateOrder(Order order);
     void deleteOrder(Integer id);
+    Order getActiveOrdersByCustomerId(Integer customerId);
 }
 

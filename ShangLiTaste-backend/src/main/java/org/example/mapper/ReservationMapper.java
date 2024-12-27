@@ -25,5 +25,8 @@ public interface ReservationMapper {
 
     @Select("SELECT * FROM reservations WHERE customer_id = #{customerId} AND status = 0")
     Reservation get0ReservationByCustomerId(Integer customerId);
+
+    @Update("UPDATE reservations SET status = 1 WHERE table_id = #{tableId}")
+    void updateReservationf0t1(Integer tableId);
 }
 

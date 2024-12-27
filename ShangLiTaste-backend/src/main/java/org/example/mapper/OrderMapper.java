@@ -17,10 +17,12 @@ public interface OrderMapper {
     @Options(useGeneratedKeys = true, keyProperty = "orderId")
     void insertOrder(Order order);
 
-    @Update("UPDATE orders SET table_id = #{tableId}, order_time = #{orderTime}, status = #{status} WHERE order_id = #{orderId}")
     void updateOrder(Order order);
 
     @Delete("DELETE FROM orders WHERE order_id = #{orderId}")
     void deleteOrder(Integer orderId);
+
+    @Select("SELECT * FROM orders WHERE status = 0 AND table_id = (SELECT table_id FROM reservations WHERE customer_id = #{customerId} AND status = 1)")
+    Order getActiveOrdersByCustomerId(Integer customerId);
 }
 

@@ -43,7 +43,9 @@ public class LogAspect {
         String jwt = request.getHeader("token");
         Claims claims = JwtUtils.parseJWT(jwt);
         String operateUsername = (String) claims.get("username");
-
+        if (operateUsername == null) {
+            operateUsername = (String) claims.get("name");
+        }
         //操作时间
         LocalDateTime operateTime = LocalDateTime.now();
 

@@ -5,7 +5,8 @@
       <h3>菜品种类</h3>
       <el-menu :default-active="activeCategory" class="category-menu">
         <el-menu-item index="all" @click="filterCategory('all')">全部</el-menu-item>
-        <el-menu-item v-for="category in categories" :key="category.categoryId" :index="category.categoryId" @click="filterCategory(category.categoryId)">
+        <el-menu-item v-for="category in categories" :key="category.categoryId" :index="category.categoryId"
+                      @click="filterCategory(category.categoryId)">
           {{ category.categoryName }}
         </el-menu-item>
       </el-menu>
@@ -33,7 +34,7 @@
             class="menu-item"
             @click.stop="openItemDialog(item)"
         >
-          <img :src="item.img" alt="菜品图片" class="menu-image" />
+          <img :src="item.img" alt="菜品图片" class="menu-image"/>
           <div class="item-info">
             <h3 class="item-name">{{ item.name }}</h3>
             <p class="item-price">￥{{ item.price }}</p>
@@ -53,28 +54,31 @@
 
     <!-- 购物车区域 -->
     <div class="cart-area">
-      <h3>购物车</h3>
+      <h3 style="color: #8B4513">购物车</h3>
 
-      <!-- 输入桌号 -->
+      <!-- 桌号 -->
       <div class="table-selection">
-        <el-input
-            v-model="selectedTable"
-            placeholder="请输入桌号"
-            style="width: 120px;"
-        />
+        <div class="w-[120px] bg-white rounded-lg shadow-md overflow-hidden">
+          <div class="p-4">
+            <div class="text-center">
+              <h3 class="text-lg font-medium text-gray-900" style="color: #8B0000">桌号 {{ selectedTable }}</h3>
+            </div>
+          </div>
+        </div>
       </div>
-
-      <div v-if="cart.length > 0">
-        <ul>
-          <li v-for="item in cart.filter(item => item.count > 0)" :key="item.dishId">
-            {{ item.name }} x{{ item.count }} - ￥{{ item.price * item.count }}
-          </li>
-        </ul>
-        <p><strong>总计：</strong>￥{{ totalPrice }}</p>
-        <el-button type="primary" @click="placeOrder" class="order-button">下单</el-button>
-      </div>
-      <div v-else>
-        <p>购物车为空</p>
+      <div style="color: #8B4513">
+        <div v-if="cart.length > 0">
+          <ul>
+            <li v-for="item in cart.filter(item => item.count > 0)" :key="item.dishId">
+              {{ item.name }} x{{ item.count }} - ￥{{ item.price * item.count }}
+            </li>
+          </ul>
+          <p><strong>总计：</strong>￥{{ totalPrice }}</p>
+          <el-button type="primary" @click="placeOrder" class="order-button">下单</el-button>
+        </div>
+        <div v-else>
+          <p>购物车为空</p>
+        </div>
       </div>
     </div>
   </div>
@@ -90,7 +94,7 @@
     </template>
 
     <div class="item-detail">
-      <img :src="selectedItem.img" alt="菜品图片" class="item-detail-image" />
+      <img :src="selectedItem.img" alt="菜品图片" class="item-detail-image"/>
       <div class="item-detail-info">
         <p><strong>价格：</strong>￥{{ selectedItem.price }}</p>
         <p><strong>介绍：</strong>{{ selectedItem.description }}</p>
@@ -100,9 +104,10 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
-import { ElMessage } from 'element-plus';
+import {ref, computed, onMounted} from 'vue';
+import {ElMessage} from 'element-plus';
 import api from '@/api/api';
+import router from "@/router";
 
 // 菜品数据
 const menu = ref([]);
@@ -127,6 +132,10 @@ const selectedItem = ref({});
 
 // 选择桌号
 const selectedTable = ref('');
+
+const reservations = ref({});
+
+let orderId = ref('');
 
 // 计算购物车总价
 const totalPrice = computed(() => {
@@ -161,20 +170,68 @@ const updateCart = (item) => {
   if (existingItem) {
     existingItem.count = item.count;
   } else if (item.count > 0) {
-    cart.value.push({ ...item });
+    cart.value.push({...item});
   } else {
     cart.value = cart.value.filter(cartItem => cartItem.dishId !== item.dishId);
   }
 };
 
+// 检查是否存在未结账的订单
+const checkExistingOrder = async (customerId) => {
+  try {
+    const response = await api.get(`/api/orders/customer/${customerId}`);
+    return response.data.data; // 假设这返回活跃订单，如果没有则为null
+  } catch (error) {
+    console.error('检查订单失败:', error);
+    return null;
+  }
+};
+
 // 下单处理
-const placeOrder = () => {
+const placeOrder = async () => {
   if (cart.value.length > 0 && selectedTable.value) {
-    ElMessage.success(`成功下单！桌号：${selectedTable.value} 总计：￥${totalPrice.value}`);
-    // 清空购物车
-    cart.value = [];
-    // 清空菜品数量
-    menu.value.forEach(item => item.count = 0);
+    try {
+      const existingOrder = await checkExistingOrder(reservations.value.customerId);
+
+      if (existingOrder) {
+        orderId = existingOrder.orderId;
+        ElMessage.info(`继续在订单 #${orderId} 上加菜`);
+      } else {
+        // 创建新Order对象
+        const newOrder = {
+          tableId: selectedTable.value,
+          orderTime: new Date().toISOString(),
+          status: 0 // 假设0表示新订单
+        };
+
+        // 发送Order到后端
+        const orderResponse = await api.post('/api/orders', newOrder);
+        orderId = orderResponse.data.data.orderId;
+      }
+console.log(cart.value);
+      // 创建并发送每个OrderItem
+      for (const item of cart.value) {
+        const orderItem = {
+          orderId: orderId,
+          dishId: item.dishId,
+          quantity: item.count,
+          price: item.price,
+          totalPrice: item.price * item.count
+        };
+        await api.post('/api/order-items', orderItem);
+      }
+
+      ElMessage.success(`成功下单！桌号：${selectedTable.value} 总计：￥${totalPrice.value}`);
+
+      // 清空购物车
+      cart.value = [];
+      // 清空菜品数量
+      menu.value.forEach(item => item.count = 0);
+
+    } catch (error) {
+      console.error('下单失败:', error);
+      ElMessage.error('下单失败，请重试');
+    }
   } else {
     ElMessage.warning("购物车为空或未输入桌号，无法下单");
   }
@@ -193,7 +250,11 @@ const handleServiceClick = () => {
 
 // 提示请前往前台结账
 const handleCheckoutClick = () => {
+  api.put(`/api/orders/${orderId}`, {status: 1});
   ElMessage.info('请前往前台结账...');
+  setTimeout(() => {
+    router.push('/customer-selection');
+  }, 1000);
 };
 
 // 获取菜品数据
@@ -222,8 +283,51 @@ const fetchDishData = async () => {
   }
 };
 
+// JWT解析函数
+function parseJWT(token) {
+  const parts = token.split('.');
+  if (parts.length !== 3) {
+    throw new Error('Invalid JWT format');
+  }
+
+  const header = JSON.parse(atob(parts[0]));
+  const payload = JSON.parse(atob(parts[1]));
+  return {header, payload};
+}
+
+const fetchTableData = async () => {
+  try {
+    const token = localStorage.getItem('jwt')
+    if (!token) {
+      throw new Error('No token found')
+    }
+    const {payload} = parseJWT(token)
+    const customerId = payload.customerId
+
+    const response = await api.get(`/api/reservations/customer/${customerId}`);
+    if (response.data.code === 1) {
+      selectedTable.value = response.data.data.tableId;
+      reservations.value = response.data.data;
+    } else {
+      throw new Error(response.data.msg || 'Failed to fetch user info')
+    }
+  } catch (error) {
+    console.error('Error fetching table data:', error);
+    ElMessage.error('获取桌号数据失败');
+  }
+};
+
+const returnToSelection = () => {
+  if(!selectedTable.value) {
+    ElMessage.warning('未预定，返回顾客选择页面');
+    router.push('/customer-selection');
+  }
+};
+
 onMounted(() => {
   fetchDishData();
+  fetchTableData();
+  setTimeout(returnToSelection, 2000);
 });
 </script>
 
