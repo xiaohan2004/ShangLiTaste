@@ -9,5 +9,6 @@ public interface PurchaseHistoryService {
     void addPurchaseHistory(PurchaseHistory purchaseHistory);
     void updatePurchaseHistory(PurchaseHistory purchaseHistory);
     void deletePurchaseHistory(Integer id);
+    List<PurchaseHistory> getPurchaseHistoryByCustomerId(Integer customerId);
 }
 

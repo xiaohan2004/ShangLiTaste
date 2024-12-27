@@ -17,7 +17,6 @@ public interface TableMapper {
     @Options(useGeneratedKeys = true, keyProperty = "tableId")
     void insertTable(Table table);
 
-    @Update("UPDATE tables SET status = #{status}, location = #{location} WHERE table_id = #{tableId}")
     void updateTable(Table table);
 
     @Delete("DELETE FROM tables WHERE table_id = #{tableId}")

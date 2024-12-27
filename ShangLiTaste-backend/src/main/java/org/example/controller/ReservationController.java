@@ -28,6 +28,12 @@ public class ReservationController {
         }
     }
 
+    // 获取未消费的预定信息
+    @GetMapping("/customer/{customerId}")
+    public Result get0ReservationByCustomerId(@PathVariable Integer customerId) {
+        return Result.success(reservationService.get0ReservationByCustomerId(customerId));
+    }
+
     @PostMapping
     public Result createReservation(@RequestBody Reservation reservation) {
         reservationService.addReservation(reservation);

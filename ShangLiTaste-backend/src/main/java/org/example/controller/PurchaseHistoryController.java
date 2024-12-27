@@ -32,6 +32,12 @@ public class PurchaseHistoryController {
         }
     }
 
+    @GetMapping("/customer/{customerId}")
+    public Result getPurchaseHistoryByCustomerId(@PathVariable Integer customerId) {
+        List<PurchaseHistory> purchaseHistories = purchaseHistoryService.getPurchaseHistoryByCustomerId(customerId);
+        return Result.success(purchaseHistories);
+    }
+
     @PostMapping
     public Result createPurchaseHistory(@RequestBody PurchaseHistory purchaseHistory) {
         purchaseHistoryService.addPurchaseHistory(purchaseHistory);

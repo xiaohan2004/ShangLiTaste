@@ -22,5 +22,8 @@ public interface ReservationMapper {
 
     @Delete("DELETE FROM reservations WHERE reservation_id = #{reservationId}")
     void deleteReservation(Integer reservationId);
+
+    @Select("SELECT * FROM reservations WHERE customer_id = #{customerId} AND status = 0")
+    Reservation get0ReservationByCustomerId(Integer customerId);
 }
 

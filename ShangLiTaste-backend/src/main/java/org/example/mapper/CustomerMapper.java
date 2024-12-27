@@ -23,7 +23,7 @@ public interface CustomerMapper {
     @Options(useGeneratedKeys = true, keyProperty = "customerId")
     void insertCustomer(Customer customer);
 
-    @Update("UPDATE customers SET name = #{name}, phone = #{phone}, email = #{email}, address = #{address}, registration_date = #{registrationDate}, birthday = #{birthday}, total_spent = #{totalSpent} WHERE customer_id = #{customerId}")
+    @Update("UPDATE customers SET name = #{name}, password = #{password}, phone = #{phone}, email = #{email}, address = #{address}, registration_date = #{registrationDate}, birthday = #{birthday}, total_spent = #{totalSpent} WHERE customer_id = #{customerId}")
     void updateCustomer(Customer customer);
 
     @Delete("DELETE FROM customers WHERE customer_id = #{customerId}")

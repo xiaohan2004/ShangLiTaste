@@ -38,5 +38,10 @@ public class PurchaseHistoryServiceImpl implements PurchaseHistoryService {
     public void deletePurchaseHistory(Integer id) {
         purchaseHistoryMapper.deletePurchaseHistory(id);
     }
+
+    @Override
+    public List<PurchaseHistory> getPurchaseHistoryByCustomerId(Integer customerId) {
+        return purchaseHistoryMapper.getPurchaseHistoryByCustomerId(customerId);
+    }
 }
 

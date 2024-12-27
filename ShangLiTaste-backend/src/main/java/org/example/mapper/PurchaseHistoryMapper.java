@@ -22,5 +22,8 @@ public interface PurchaseHistoryMapper {
 
     @Delete("DELETE FROM purchase_history WHERE purchase_id = #{purchaseId}")
     void deletePurchaseHistory(Integer purchaseId);
+
+    @Select("SELECT * FROM purchase_history WHERE customer_id = #{customerId}")
+    List<PurchaseHistory> getPurchaseHistoryByCustomerId(Integer customerId);
 }
 

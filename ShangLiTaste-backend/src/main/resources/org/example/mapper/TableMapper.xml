@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.example.mapper.TableMapper">
+
+    <update id="updateTable">
+        UPDATE tables
+        <set>
+            <if test="status != null">status = #{status},</if>
+            <if test="location != null">location = #{location}</if>
+        </set>
+        WHERE table_id = #{tableId}
+    </update>
+
+</mapper>
