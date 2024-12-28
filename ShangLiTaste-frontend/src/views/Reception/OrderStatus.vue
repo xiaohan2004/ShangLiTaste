@@ -32,9 +32,17 @@
       <el-table-column label="订单状态" prop="status">
         <template #default="{ row }">
           <el-tag :type="getStatusType(row.status)" size="small">{{ row.status }}</el-tag>
+          <el-button
+              v-if="row.status === '已完成'"
+              type="primary"
+              size="small"
+              @click="showCheckoutDialog(row)"
+              style="margin-left: 10px;"
+          >
+            结账
+          </el-button>
         </template>
       </el-table-column>
-
     </el-table>
 
     <!-- 翻页功能 -->
@@ -46,11 +54,29 @@
         @current-change="handlePageChange"
         class="pagination"
     />
+
+    <!-- 结账弹窗 -->
+    <el-dialog
+        title="选择支付方式"
+        v-model="checkoutDialogVisible"
+        width="30%"
+    >
+      <el-radio-group v-model="selectedPaymentMethod">
+        <el-radio label="cash">现金</el-radio>
+        <el-radio label="alipay">支付宝</el-radio>
+        <el-radio label="wechat">微信支付</el-radio>
+      </el-radio-group>
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="checkoutDialogVisible = false">取消</el-button>
+          <el-button type="primary" @click="confirmCheckout">确认结账</el-button>
+        </span>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script>
-
 import axios from "axios";
 import api from "@/api/api";
 
@@ -62,6 +88,9 @@ export default {
       orderData: [],  // 存储从后端获取的用户数据
       currentPage: 1,  // 当前页码，初始化为第一页
       pageSize: 10,    // 每页显示的数据条数，初始化为10
+      checkoutDialogVisible: false, // 控制结账弹窗的显示
+      selectedPaymentMethod: '', // 选中的支付方式
+      currentCheckoutOrder: null, // 当前正在结账的订单
     };
   },
   computed: {
@@ -90,7 +119,6 @@ export default {
           return 'default'; // 默认颜色
       }
     },
-
     fetchDailyData() {
       api.get('/api/orders')  // 替换为你的后端接口地址
           .then(response => {
@@ -111,12 +139,65 @@ export default {
             console.error('Error fetching data:', error);
           });
     },
+    showCheckoutDialog(row) {
+      this.currentCheckoutOrder = row;
+      this.checkoutDialogVisible = true;
+      this.selectedPaymentMethod = ''; // 重置选中的支付方式
+    },
+    confirmCheckout() {
+      if (!this.selectedPaymentMethod) {
+        this.$message.warning('请选择支付方式');
+        return;
+      }
+
+      // 创建一个新的对象，只包含需要更新的字段
+      const updatedOrder = {
+        orderId: this.currentCheckoutOrder.orderId,
+        status: 2  // 假设2代表"已结账"状态
+      };
+
+      api.put(`/api/orders/${this.currentCheckoutOrder.orderId}`, updatedOrder)
+          .then(response => {
+            if (response.data.code === 1) {
+              // 更新成功，修改本地数据
+              this.currentCheckoutOrder.status = '已结账';
+              this.$message.success(`订单已成功结账，支付方式：${this.getPaymentMethodName(this.selectedPaymentMethod)}`);
+              this.checkoutDialogVisible = false;
+            } else {
+              // 处理特定的错误情况
+              if (response.data.code === 0 && response.data.msg) {
+                this.$message.error(response.data.msg);
+              } else {
+                this.$message.error('结账失败: ' + (response.data.msg || '未知错误'));
+              }
+            }
+          })
+          .catch(error => {
+            console.error('Error updating order:', error);
+            this.$message.error('结账失败，请稍后重试');
+          });
+    },
+    getPaymentMethodName(method) {
+      switch (method) {
+        case 'cash':
+          return '现金';
+        case 'alipay':
+          return '支付宝';
+        case 'wechat':
+          return '微信支付';
+        default:
+          return '未知方式';
+      }
+    },
   },
   created() {
     this.fetchDailyData();  // 页面创建时加载数据
   },
 };
 </script>
+
+
+
 
 <style scoped>
 /* 自定义样式 */
