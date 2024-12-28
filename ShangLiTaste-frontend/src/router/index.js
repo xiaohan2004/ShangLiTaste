@@ -26,6 +26,7 @@ import InternalStaffRegister from "@/views/InternalStaffRegister.vue";
 import CustomerRegister from "@/views/CustomerRegister.vue";
 import DishCategory from "@/views/Backstage/DishCategory.vue";
 import SystemLog from "@/views/Backstage/SystemLog.vue";
+import Dashboard from "@/views/Backstage/Dashboard.vue";
 
 // 定义路由规则
 const routes = [
@@ -41,6 +42,7 @@ const routes = [
         component: BackstageLayout, // 带导航栏和侧边栏的布局
         meta: {requiresAuth: true},// meta requiresAuth字段表示该路由需要登录,但是现在导航守卫用的是排除方法
         children: [
+            {path: "dashboard", name: "Dashboard", component: Dashboard},
             {path: "table-management", name: "TableManagement", component: TableManagement},
             {path: "dish-management", name: "DishManagement", component: DishManagement},
             {path: "user-management-internalStaff", name: "InternalStaff", component: InternalStaff},
@@ -50,8 +52,8 @@ const routes = [
             {path: "report-generation-yearly", name: "ReportYearly", component: ReportYearly},
             {path: "manager-user", name: "ManagerUserInfo", component: ManagerUserInfo},
             // { path: "customer-detail", name: "CustomerDetail", component: CustomerDetail },
-            {path: "dish-category", name: DishCategory, component: DishCategory},
-            {path: "systemlog", name: SystemLog, component: SystemLog}
+            {path: "dish-category", name: "DishCategory", component: DishCategory},
+            {path: "systemlog", name: "SystemLog", component: SystemLog}
         ],
     },
     {

@@ -14,7 +14,10 @@
     "vue-router": "^4.0.3",
     "vuex": "^4.0.0",
     "axios": "^1.7.9",
-    "date-fns": "^2.29.3"
+    "date-fns": "^2.29.3",
+    "vue-chartjs": "^5.2.0",
+    "chart.js": "^4.3.0",
+    "lucide-vue-next": "^0.263.0"
   },
   "devDependencies": {
     "@vue/cli-plugin-babel": "~5.0.0",

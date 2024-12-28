@@ -108,7 +108,7 @@ const handleLogin = async () => {
 
       // 根据角色跳转到不同页面
       if (role.value === 'admin') {
-        goToPage('/backstage/table-management');
+        goToPage('/backstage/dashboard');
       } else {
         goToPage('/reception/table-status');
       }
