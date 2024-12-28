@@ -135,7 +135,9 @@ const selectedTable = ref('');
 
 const reservations = ref({});
 
-let orderId = ref('');
+const orderId = ref('');
+
+const customerId = ref('');
 
 // 计算购物车总价
 const totalPrice = computed(() => {
@@ -250,9 +252,10 @@ const handleServiceClick = () => {
 
 // 提示请前往前台结账
 const handleCheckoutClick = () => {
-  api.put(`/api/orders/${orderId.value}`, {status: 1});
+  api.put(`/api/orders/${orderId.value}`, {tableId: selectedTable.value, status: 1});
   // 创建账单
-  api.post(`/api/bills/order/${orderId.value}`)
+  api.post(`/api/purchase-history/order/${orderId.value}`, {customerId: customerId.value});
+  api.get(`/api/customers/${customerId.value}`);
   ElMessage.info('请前往前台结账...');
   setTimeout(() => {
     router.push('/customer-selection');
@@ -304,9 +307,9 @@ const fetchTableData = async () => {
       throw new Error('No token found')
     }
     const {payload} = parseJWT(token)
-    const customerId = payload.customerId
+    customerId.value = payload.customerId
 
-    const response = await api.get(`/api/reservations/customer/${customerId}`);
+    const response = await api.get(`/api/reservations/customer/${customerId.value}`);
     if (response.data.code === 1) {
       selectedTable.value = response.data.data.tableId;
       reservations.value = response.data.data;

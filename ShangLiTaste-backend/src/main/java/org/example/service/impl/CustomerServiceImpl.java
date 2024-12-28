@@ -21,6 +21,7 @@ public class CustomerServiceImpl implements CustomerService {
 
     @Override
     public Customer getCustomerById(Integer id) {
+        customerMapper.updateCustomerTotalSpentById(id);
         return customerMapper.getCustomerById(id);
     }
 

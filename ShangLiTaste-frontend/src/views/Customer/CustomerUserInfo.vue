@@ -17,47 +17,51 @@
           <h2 class="section-title">基础信息</h2>
           <div class="form-row">
             <el-form-item label="客户编号" class="form-item">
-              <el-input v-model="formData.customerId" disabled />
+              <el-input v-model="formData.customerId" disabled/>
             </el-form-item>
             <el-form-item label="客户用户名" class="form-item">
-              <el-input v-model="formData.name" />
+              <el-input v-model="formData.name"/>
             </el-form-item>
           </div>
           <div class="form-row">
             <el-form-item label="客户电话" class="form-item">
-              <el-input v-model="formData.phone" />
+              <el-input v-model="formData.phone"/>
             </el-form-item>
             <el-form-item label="客户电子邮件" class="form-item">
-              <el-input v-model="formData.email" />
+              <el-input v-model="formData.email"/>
             </el-form-item>
           </div>
           <div class="form-row">
             <el-form-item label="客户地址" class="form-item">
-              <el-input v-model="formData.address" />
+              <el-input v-model="formData.address"/>
             </el-form-item>
             <el-form-item label="注册日期" class="form-item">
-              <el-input :value="formatDate(formData.registrationDate)" disabled />
+              <el-input :value="formatDate(formData.registrationDate)" disabled/>
             </el-form-item>
           </div>
           <div class="form-row">
             <el-form-item label="客户生日" class="form-item">
-              <el-date-picker v-model="formData.birthday" type="date" placeholder="选择日期" style="width: 100%;" value-format="yyyy-MM-dd" />
+              <el-date-picker
+                  v-model="formData.birthday"
+                  type="date"
+                  placeholder="Pick a day"
+              />
             </el-form-item>
             <el-form-item label="累计消费金额" class="form-item">
-              <el-input v-model="formData.totalSpent" disabled />
+              <el-input v-model="formData.totalSpent" disabled/>
             </el-form-item>
           </div>
           <div class="form-row">
             <el-form-item label="新密码" class="form-item">
-              <el-input v-model="formData.newPassword" type="password" placeholder="输入新密码以更改" />
+              <el-input v-model="formData.newPassword" type="password" placeholder="输入新密码以更改"/>
             </el-form-item>
             <el-form-item label="确认新密码" class="form-item">
-              <el-input v-model="formData.confirmPassword" type="password" placeholder="再次输入新密码" />
+              <el-input v-model="formData.confirmPassword" type="password" placeholder="再次输入新密码"/>
             </el-form-item>
           </div>
           <el-button type="primary" native-type="submit">修改并提交</el-button>
         </el-form>
-        <el-skeleton v-else :rows="8" animated />
+        <el-skeleton v-else :rows="8" animated/>
       </div>
 
       <!-- 消费历史 -->
@@ -76,8 +80,8 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
-import { ElMessage, ElSkeleton } from 'element-plus';
+import {ref, onMounted} from 'vue';
+import {ElMessage, ElSkeleton} from 'element-plus';
 import api from '@/api/api';
 
 function parseJWT(token) {
@@ -89,7 +93,7 @@ function parseJWT(token) {
   const header = JSON.parse(atob(parts[0]));
   const payload = JSON.parse(atob(parts[1]));
 
-  return { header, payload };
+  return {header, payload};
 }
 
 // 基本信息数据
@@ -131,7 +135,7 @@ const fetchCustomerInfo = async () => {
       throw new Error('No token found');
     }
 
-    const { payload } = parseJWT(token);
+    const {payload} = parseJWT(token);
     const customerId = payload.customerId;
 
     const response = await api.get(`/api/customers/${customerId}`);
@@ -170,7 +174,7 @@ const fetchPurchaseHistory = async () => {
       throw new Error('No token found');
     }
 
-    const { payload } = parseJWT(token);
+    const {payload} = parseJWT(token);
     const customerId = payload.customerId;
 
     const response = await api.get(`/api/purchase-history/customer/${customerId}`);
@@ -193,10 +197,19 @@ const formatPaymentMethod = (method) => {
   const methods = {
     0: '现金',
     1: '信用卡',
-    2: '借记卡',
-    3: '电子支付'
+    2: '微信支付',
   };
   return methods[method] || '未知';
+};
+
+const handleBirthdayFocus = (event) => {
+  event.target.type = 'date';
+};
+
+const handleBirthdayBlur = (event) => {
+  if (!event.target.value) {
+    event.target.type = 'text';
+  }
 };
 
 // 更新用户信息
@@ -207,7 +220,7 @@ const updateInfo = async () => {
       throw new Error('No token found');
     }
 
-    const { payload } = parseJWT(token);
+    const {payload} = parseJWT(token);
     const customerId = payload.customerId;
 
     const updateData = {
@@ -263,8 +276,6 @@ const formatDate = (dateString) => {
       String(date.getSeconds()).padStart(2, '0');
 };
 </script>
-
-
 
 <style scoped>
 .profile-container {

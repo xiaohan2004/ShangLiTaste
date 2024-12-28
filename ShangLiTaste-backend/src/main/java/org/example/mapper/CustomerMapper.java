@@ -23,10 +23,12 @@ public interface CustomerMapper {
     @Options(useGeneratedKeys = true, keyProperty = "customerId")
     void insertCustomer(Customer customer);
 
-    @Update("UPDATE customers SET name = #{name}, password = #{password}, phone = #{phone}, email = #{email}, address = #{address}, registration_date = #{registrationDate}, birthday = #{birthday}, total_spent = #{totalSpent} WHERE customer_id = #{customerId}")
     void updateCustomer(Customer customer);
 
     @Delete("DELETE FROM customers WHERE customer_id = #{customerId}")
     void deleteCustomer(Integer customerId);
+
+    @Update("UPDATE customers SET total_spent = (SELECT SUM(total_amount) FROM purchase_history WHERE customer_id = #{id}) WHERE customer_id = #{id}")
+    void updateCustomerTotalSpentById(Integer id);
 }
 

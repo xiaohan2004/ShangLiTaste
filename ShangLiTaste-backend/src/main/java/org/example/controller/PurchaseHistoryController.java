@@ -1,5 +1,7 @@
 package org.example.controller;
 
+import org.example.pojo.Bill;
+import org.example.pojo.Customer;
 import org.example.pojo.PurchaseHistory;
 import org.example.pojo.Result;
 import org.example.service.PurchaseHistoryService;
@@ -42,6 +44,16 @@ public class PurchaseHistoryController {
     public Result createPurchaseHistory(@RequestBody PurchaseHistory purchaseHistory) {
         purchaseHistoryService.addPurchaseHistory(purchaseHistory);
         return Result.success(purchaseHistory);
+    }
+
+    @PostMapping("/order/{id}")
+    public Result createPurchaseHistoryByOrder(@PathVariable Integer id, @RequestBody Customer customer) {
+        PurchaseHistory existingPurchaseHistory = purchaseHistoryService.getPurchaseHistoryByOrderId(id);
+        if (existingPurchaseHistory != null) {
+            return Result.error("PurchaseHistory already exists");
+        }
+        purchaseHistoryService.addBillByOrder(id, customer.getCustomerId());
+        return Result.success();
     }
 
     @PutMapping("/{id}")

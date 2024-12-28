@@ -65,11 +65,11 @@ export default defineComponent({
     });
 
     const groupedOverview = computed(() => ({
-      '已启用菜品/菜品总数': `${overview.value.totalDishes} / ${overview.value.activeDishes}`,
-      '今日订单/订单总数': `${overview.value.todayOrders} / ${overview.value.totalOrders}`,
+      '已启用菜品/菜品总数': `${overview.value.activeDishes} / ${overview.value.totalDishes}`,
+      '订单总数': `${overview.value.totalOrders}`,
       '平均账单金额': `${overview.value.averageBillAmount}`,
       '顾客数 / 顾客平均消费': `${overview.value.totalCustomers} / ${overview.value.averageCustomerSpent}`,
-      '总桌数 / 可用桌数 / 已预定桌数 / 已占用桌数': `${overview.value.totalTables} / ${overview.value.availableTables} / ${overview.value.reservedTables} / ${overview.value.occupiedTables}`,
+      '可用桌数 / 已预定桌数 / 已占用 / 桌数总桌数': `${overview.value.availableTables} / ${overview.value.reservedTables} / ${overview.value.occupiedTables} / ${overview.value.totalTables}`,
       '平均操作时间': `${overview.value.averageOperationTime} ms`,
     }));
 

@@ -36,7 +36,6 @@ public class OrderServiceImpl implements OrderService {
     @Transactional
     public void addOrder(Order order) {
         orderMapper.insertOrder(order);
-        reservationMapper.updateReservationf0t1(order.getTableId());
         tableMapper.updateTable(new Table(order.getTableId(), (short) 2, null));
     }
 
@@ -45,6 +44,7 @@ public class OrderServiceImpl implements OrderService {
     public void updateOrder(Order order) {
         orderMapper.updateOrder(order);
         tableMapper.updateTable(new Table(order.getTableId(), (short) 0, null));
+        reservationMapper.updateReservationf0t1(order.getTableId());
     }
 
     @Override

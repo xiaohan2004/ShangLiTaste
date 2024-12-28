@@ -43,5 +43,15 @@ public class PurchaseHistoryServiceImpl implements PurchaseHistoryService {
     public List<PurchaseHistory> getPurchaseHistoryByCustomerId(Integer customerId) {
         return purchaseHistoryMapper.getPurchaseHistoryByCustomerId(customerId);
     }
+
+    @Override
+    public PurchaseHistory getPurchaseHistoryByOrderId(Integer id) {
+        return purchaseHistoryMapper.getPurchaseHistoryByOrderId(id);
+    }
+
+    @Override
+    public void addBillByOrder(Integer id, Integer customerId) {
+        purchaseHistoryMapper.insertPurchaseHistoryByOrder(id, customerId);
+    }
 }
 
