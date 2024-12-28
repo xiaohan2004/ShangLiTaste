@@ -251,6 +251,8 @@ const handleServiceClick = () => {
 // 提示请前往前台结账
 const handleCheckoutClick = () => {
   api.put(`/api/orders/${orderId.value}`, {status: 1});
+  // 创建账单
+  api.post(`/api/bills/order/${orderId.value}`)
   ElMessage.info('请前往前台结账...');
   setTimeout(() => {
     router.push('/customer-selection');

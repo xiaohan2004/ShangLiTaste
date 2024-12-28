@@ -21,5 +21,16 @@ public interface BillMapper {
 
     @Delete("DELETE FROM bills WHERE bill_id = #{billId}")
     void deleteBill(Integer billId);
+
+    @Select("SELECT * FROM bills WHERE order_id = #{id}")
+    Bill getBillByOrderId(Integer id);
+
+    @Insert("INSERT INTO bills(order_id, total_amount, paid_amount, change_amount, payment_status, payment_method) " +
+            "VALUES (#{orderId}, " +
+            "(SELECT SUM(oi.total_price) FROM order_items oi WHERE oi.order_id = #{orderId}), " +
+            "(SELECT SUM(oi.total_price) FROM order_items oi WHERE oi.order_id = #{orderId}), " +
+            "0, " +
+            "1, 2)")
+    void insertBillByOrder(Integer id);
 }
 

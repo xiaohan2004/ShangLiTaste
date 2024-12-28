@@ -10,5 +10,6 @@ public interface DishService {
     void addDish(Dish dish);
     void updateDish(Dish dish);
     void deleteDish(Integer id);
+    void forceDeleteDish(Integer id);
 }
 

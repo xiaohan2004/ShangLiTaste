@@ -57,5 +57,16 @@ public class DishController {
             return Result.error("Not Found");
         }
     }
+
+    @DeleteMapping("/force/{id}")
+    public Result forceDeleteDish(@PathVariable Integer id) {
+        Dish existingDish = dishService.getDishById(id);
+        if (existingDish != null) {
+            dishService.forceDeleteDish(id);
+            return Result.success();
+        } else {
+            return Result.error("Not Found");
+        }
+    }
 }
 
