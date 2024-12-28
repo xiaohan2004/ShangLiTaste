@@ -69,7 +69,7 @@ export default defineComponent({
       '订单总数': `${overview.value.totalOrders}`,
       '平均账单金额': `${overview.value.averageBillAmount}`,
       '顾客数 / 顾客平均消费': `${overview.value.totalCustomers} / ${overview.value.averageCustomerSpent}`,
-      '可用桌数 / 已预定桌数 / 已占用 / 桌数总桌数': `${overview.value.availableTables} / ${overview.value.reservedTables} / ${overview.value.occupiedTables} / ${overview.value.totalTables}`,
+      '空闲桌数 / 总桌数': `${overview.value.availableTables} / ${overview.value.totalTables}`,
       '平均操作时间': `${overview.value.averageOperationTime} ms`,
     }));
 
