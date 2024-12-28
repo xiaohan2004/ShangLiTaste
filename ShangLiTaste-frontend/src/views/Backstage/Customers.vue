@@ -82,6 +82,8 @@
               type="date"
               placeholder="选择日期"
               size="small"
+              format="YYYY-MM-DD"
+              value-format="YYYY-MM-DD"
           ></el-date-picker>
           <span v-else>{{ row.birthday }}</span>
         </template>
