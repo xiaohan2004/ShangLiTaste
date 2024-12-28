@@ -28,7 +28,7 @@ public class ReservationController {
         }
     }
 
-    // 获取未消费的预定信息
+    // 获取status为0的预定信息
     @GetMapping("/customer/{customerId}")
     public Result get0ReservationByCustomerId(@PathVariable Integer customerId) {
         return Result.success(reservationService.get0ReservationByCustomerId(customerId));
