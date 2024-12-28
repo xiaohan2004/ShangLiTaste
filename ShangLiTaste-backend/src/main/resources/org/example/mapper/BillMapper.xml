@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.example.mapper.BillMapper">
+
+    <update id="updateBill">
+        UPDATE bills
+        <set>
+            <if test="order_id != null">order_id = #{orderId},</if>
+            <if test="total_amount != null">total_amount = #{totalAmount},</if>
+            <if test="paid_amount != null">paid_amount = #{paidAmount},</if>
+            <if test="change_amount != null">change_amount = #{changeAmount},</if>
+            <if test="payment_status != null">payment_status = #{paymentStatus},</if>
+            <if test="payment_method != null">payment_method = #{paymentMethod}</if>
+        </set>
+        WHERE bill_id = #{billId}
+    </update>
+
+</mapper>

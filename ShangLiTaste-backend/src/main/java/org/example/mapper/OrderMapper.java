@@ -22,6 +22,9 @@ public interface OrderMapper {
     @Delete("DELETE FROM orders WHERE order_id = #{orderId}")
     void deleteOrder(Integer orderId);
 
+    @Select("SELECT * FROM orders WHERE status = 0 AND table_id = #{tableId}")
+    Order getActiveOrdersByTableId(Integer tableId);
+
     @Select("SELECT * FROM orders WHERE status = 0 AND table_id = (SELECT table_id FROM reservations WHERE customer_id = #{customerId} AND status = 1)")
     Order getActiveOrdersByCustomerId(Integer customerId);
 }

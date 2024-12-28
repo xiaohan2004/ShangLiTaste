@@ -32,12 +32,17 @@ public class OrderController {
         }
     }
 
+    @GetMapping("/table/{tableId}")
+    public Result getActiveOrdersByTableId(@PathVariable Integer tableId) {
+        Order order = orderService.getActiveOrdersByTableId(tableId);
+        return Result.success(order);
+    }
+
     @GetMapping("/customer/{customerId}")
     public Result getActiveOrdersByCustomerId(@PathVariable Integer customerId) {
         Order order = orderService.getActiveOrdersByCustomerId(customerId);
         return Result.success(order);
     }
-
 
     @PostMapping
     public Result createOrder(@RequestBody Order order) {

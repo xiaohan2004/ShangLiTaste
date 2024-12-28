@@ -17,7 +17,6 @@ public interface BillMapper {
     @Options(useGeneratedKeys = true, keyProperty = "billId")
     void insertBill(Bill bill);
 
-    @Update("UPDATE bills SET order_id = #{orderId}, total_amount = #{totalAmount}, paid_amount = #{paidAmount}, change_amount = #{changeAmount}, payment_status = #{paymentStatus}, payment_method = #{paymentMethod} WHERE bill_id = #{billId}")
     void updateBill(Bill bill);
 
     @Delete("DELETE FROM bills WHERE bill_id = #{billId}")
