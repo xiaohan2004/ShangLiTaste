@@ -9,5 +9,7 @@ public interface BillService {
     void addBill(Bill bill);
     void updateBill(Bill bill);
     void deleteBill(Integer id);
+    Bill getBillByOrderId(Integer id);
+    void addBillByOrder(Integer id);
 }
 

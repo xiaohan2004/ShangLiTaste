@@ -38,5 +38,15 @@ public class BillServiceImpl implements BillService {
     public void deleteBill(Integer id) {
         billMapper.deleteBill(id);
     }
+
+    @Override
+    public Bill getBillByOrderId(Integer id) {
+        return billMapper.getBillByOrderId(id);
+    }
+
+    @Override
+    public void addBillByOrder(Integer id) {
+        billMapper.insertBillByOrder(id);
+    }
 }
 

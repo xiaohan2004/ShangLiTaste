@@ -52,6 +52,12 @@ public class OrderServiceImpl implements OrderService {
         orderMapper.deleteOrder(id);
     }
 
+
+    @Override
+    public Order getActiveOrdersByTableId(Integer tableId) {
+        return orderMapper.getActiveOrdersByTableId(tableId);
+    }
+
     @Override
     public Order getActiveOrdersByCustomerId(Integer customerId) {
         return orderMapper.getActiveOrdersByCustomerId(customerId);

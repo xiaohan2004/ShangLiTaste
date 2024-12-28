@@ -7,8 +7,8 @@
     <update id="updateOrder">
         UPDATE orders
         <set>
-            <if test="table_id != null">table_id = #{tableId},</if>
-            <if test="order_time != null">order_time = #{orderTime},</if>
+            <if test="tableId != null">table_id = #{tableId},</if>
+            <if test="orderTime != null">order_time = #{orderTime},</if>
             <if test="status != null">status = #{status}</if>
         </set>
         WHERE order_id = #{orderId}

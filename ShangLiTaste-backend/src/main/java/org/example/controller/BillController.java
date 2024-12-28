@@ -34,6 +34,16 @@ public class BillController {
         return Result.success(bill);
     }
 
+    @PostMapping("/order/{id}")
+    public Result createBillByOrder(@PathVariable Integer id) {
+        Bill existingBill = billService.getBillByOrderId(id);
+        if (existingBill != null) {
+            return Result.error("Bill already exists");
+        }
+        billService.addBillByOrder(id);
+        return Result.success();
+    }
+
     @PutMapping("/{id}")
     public Result updateBill(@PathVariable Integer id, @RequestBody Bill bill) {
         Bill existingBill = billService.getBillById(id);

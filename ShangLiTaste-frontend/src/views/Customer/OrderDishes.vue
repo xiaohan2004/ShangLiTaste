@@ -177,9 +177,9 @@ const updateCart = (item) => {
 };
 
 // 检查是否存在未结账的订单
-const checkExistingOrder = async (customerId) => {
+const checkExistingOrder = async (tableId) => {
   try {
-    const response = await api.get(`/api/orders/customer/${customerId}`);
+    const response = await api.get(`/api/orders/table/${tableId}`);
     return response.data.data; // 假设这返回活跃订单，如果没有则为null
   } catch (error) {
     console.error('检查订单失败:', error);
@@ -191,11 +191,11 @@ const checkExistingOrder = async (customerId) => {
 const placeOrder = async () => {
   if (cart.value.length > 0 && selectedTable.value) {
     try {
-      const existingOrder = await checkExistingOrder(reservations.value.customerId);
+      const existingOrder = await checkExistingOrder(selectedTable.value);
 
       if (existingOrder) {
-        orderId = existingOrder.orderId;
-        ElMessage.info(`继续在订单 #${orderId} 上加菜`);
+        orderId.value = existingOrder.orderId;
+        ElMessage.info(`继续在订单 #${orderId.value} 上加菜`);
       } else {
         // 创建新Order对象
         const newOrder = {
@@ -206,13 +206,13 @@ const placeOrder = async () => {
 
         // 发送Order到后端
         const orderResponse = await api.post('/api/orders', newOrder);
-        orderId = orderResponse.data.data.orderId;
+        orderId.value = orderResponse.data.data.orderId;
       }
-console.log(cart.value);
+      console.log(cart.value);
       // 创建并发送每个OrderItem
       for (const item of cart.value) {
         const orderItem = {
-          orderId: orderId,
+          orderId: orderId.value,
           dishId: item.dishId,
           quantity: item.count,
           price: item.price,
@@ -250,7 +250,9 @@ const handleServiceClick = () => {
 
 // 提示请前往前台结账
 const handleCheckoutClick = () => {
-  api.put(`/api/orders/${orderId}`, {status: 1});
+  api.put(`/api/orders/${orderId.value}`, {status: 1});
+  // 创建账单
+  api.post(`/api/bills/order/${orderId.value}`)
   ElMessage.info('请前往前台结账...');
   setTimeout(() => {
     router.push('/customer-selection');
@@ -318,7 +320,7 @@ const fetchTableData = async () => {
 };
 
 const returnToSelection = () => {
-  if(!selectedTable.value) {
+  if (!selectedTable.value) {
     ElMessage.warning('未预定，返回顾客选择页面');
     router.push('/customer-selection');
   }

@@ -5,7 +5,8 @@
       <div style="display: flex; gap: 10px;">
         <el-select v-model="selectedCategory" placeholder="类别">
           <el-option label="全部" value=""></el-option>
-          <el-option v-for="category in categories" :key="category.categoryId" :label="category.categoryName" :value="category.categoryId"></el-option>
+          <el-option v-for="category in categories" :key="category.categoryId" :label="category.categoryName"
+                     :value="category.categoryId"></el-option>
         </el-select>
         <el-select v-model="selectedEnabled" placeholder="是否启用">
           <el-option label="全部" value=""></el-option>
@@ -26,7 +27,7 @@
       </el-table-column>
       <el-table-column label="名称" prop="name">
         <template #default="{ row }">
-          <el-input v-if="row.isEditing" v-model="row.name" size="small" />
+          <el-input v-if="row.isEditing" v-model="row.name" size="small"/>
           <span v-else>{{ row.name }}</span>
         </template>
       </el-table-column>
@@ -54,26 +55,27 @@
               size="small"
               placeholder="选择类别"
           >
-            <el-option v-for="category in categories" :key="category.categoryId" :label="category.categoryName" :value="category.categoryId"></el-option>
+            <el-option v-for="category in categories" :key="category.categoryId" :label="category.categoryName"
+                       :value="category.categoryId"></el-option>
           </el-select>
           <span v-else>{{ getCategoryName(row.categoryId) }}</span>
         </template>
       </el-table-column>
       <el-table-column label="价格" prop="price">
         <template #default="{ row }">
-          <el-input-number v-if="row.isEditing" v-model="row.price" size="small" :step="0.01" />
+          <el-input-number v-if="row.isEditing" v-model="row.price" size="small" :step="0.01"/>
           <span v-else>{{ row.price }}</span>
         </template>
       </el-table-column>
       <el-table-column label="描述" prop="description">
         <template #default="{ row }">
-          <el-input v-if="row.isEditing" v-model="row.description" type="textarea" :rows="2" size="small" />
+          <el-input v-if="row.isEditing" v-model="row.description" type="textarea" :rows="2" size="small"/>
           <span v-else>{{ row.description }}</span>
         </template>
       </el-table-column>
       <el-table-column label="启用" prop="enabled">
         <template #default="{ row }">
-          <el-switch v-if="row.isEditing" v-model="row.enabled" size="small" />
+          <el-switch v-if="row.isEditing" v-model="row.enabled" size="small"/>
           <span v-else>{{ row.enabled ? '启用' : '禁用' }}</span>
         </template>
       </el-table-column>
@@ -104,21 +106,22 @@
     <el-dialog v-model="dialogVisible" title="新增菜品" width="50%">
       <el-form :model="newDish" label-width="80px">
         <el-form-item label="名称">
-          <el-input v-model="newDish.name" />
+          <el-input v-model="newDish.name"/>
         </el-form-item>
         <el-form-item label="类别">
           <el-select v-model="newDish.categoryId" placeholder="选择类别">
-            <el-option v-for="category in categories" :key="category.categoryId" :label="category.categoryName" :value="category.categoryId"></el-option>
+            <el-option v-for="category in categories" :key="category.categoryId" :label="category.categoryName"
+                       :value="category.categoryId"></el-option>
           </el-select>
         </el-form-item>
         <el-form-item label="价格">
-          <el-input-number v-model="newDish.price" :step="0.01" />
+          <el-input-number v-model="newDish.price" :step="0.01"/>
         </el-form-item>
         <el-form-item label="描述">
-          <el-input v-model="newDish.description" type="textarea" />
+          <el-input v-model="newDish.description" type="textarea"/>
         </el-form-item>
         <el-form-item label="启用">
-          <el-switch v-model="newDish.enabled" />
+          <el-switch v-model="newDish.enabled"/>
         </el-form-item>
         <el-form-item label="图片">
           <el-upload
@@ -146,7 +149,7 @@
 </template>
 
 <script>
-import { ElMessage, ElMessageBox } from 'element-plus';
+import {ElMessage, ElMessageBox} from 'element-plus';
 import api from "@/api/api";
 
 export default {
@@ -359,7 +362,31 @@ export default {
                 ElMessage.success('删除成功');
               } else {
                 console.error('Failed to delete dish');
-                ElMessage.error('删除失败');
+                ElMessage.error('删除失败，该菜品还有未完成的订单');
+                ElMessageBox.confirm('是否强制删除该菜品，级联删除相关未完成的订单中的该菜品，<span style="color: red;">建议先让服务员告知用户！</span>', '警告', {
+                  dangerouslyUseHTMLString: true,
+                  confirmButtonText: '确定',
+                  cancelButtonText: '取消',
+                  type: 'warning'
+                })
+                    .then(() => {
+                      api.delete(`/api/dishes/force/${row.dishId}`)
+                          .then(response => {
+                            if (response.data.code === 1) {
+                              this.dishData = this.dishData.filter(dish => dish.dishId !== row.dishId);
+                              ElMessage.success('删除成功');
+                            } else {
+                              console.error('Failed to delete dish:', response.data.msg);
+                              ElMessage.error('删除失败');
+                            }
+                          })
+                          .catch(error => {
+                            console.error('Error deleting dish:', error);
+                            ElMessage.error('删除失败');
+                          });
+                    }).catch(() => {
+                  ElMessage.info('已取消删除');
+                });
               }
             })
             .catch(error => {

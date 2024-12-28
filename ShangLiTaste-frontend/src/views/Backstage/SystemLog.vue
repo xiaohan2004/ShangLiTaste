@@ -60,7 +60,7 @@
           @size-change="handleSizeChange"
           @current-change="handleCurrentChange"
           :current-page="currentPage"
-          :page-sizes="[15, 20, 50, 100]"
+          :page-sizes="[10, 20, 50, 100]"
           :page-size="pageSize"
           layout="total, sizes, prev, pager, next, jumper"
           :total="filteredAndSortedLogData.length"
@@ -107,7 +107,7 @@ export default {
     return {
       logData: [],
       currentPage: 1,
-      pageSize: 15,
+      pageSize: 10,
       filterForm: {
         operateUser: '',
         className: '',

@@ -25,5 +25,8 @@ public interface OrderItemMapper {
 
     @Delete("DELETE FROM order_items WHERE order_item_id = #{orderItemId}")
     void deleteOrderItem(Integer orderItemId);
+
+    @Delete("DELETE FROM order_items WHERE dish_id = #{id}")
+    void deleteOrderItemByDishId(Integer id);
 }
 
