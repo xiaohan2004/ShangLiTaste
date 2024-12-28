@@ -63,7 +63,7 @@ const password = ref('');
 
 // 轮播图数据
 const carouselItems = ref([
-  { id: 1, imageUrl: 'https://ts1.cn.mm.bing.net/th/id/R-C.b3a7697d2793ba094a861d546c31190d?rik=NevOIW4XmkUuMA&riu=http%3a%2f%2fseopic.699pic.com%2fphoto%2f50069%2f5445.jpg_wh1200.jpg&ehk=wuLPicg%2b9wXz8QAwp%2fAVFBtJQ6loBUiVfQZu2bbZODA%3d&risl=&pid=ImgRaw&r=0', altText: 'Image 1' },
+  { id: 1, imageUrl: 'https://shanglixiaohan.oss-cn-shanghai.aliyuncs.com/shanglitaste/c7598c6f-e7d3-44a7-8b1b-11ab2f4b375f.jpg', altText: 'Image 1' },
   { id: 2, imageUrl: 'https://ts1.cn.mm.bing.net/th/id/R-C.802a0a8b66b9965de3fd49b33c970bea?rik=C%2fArDzfQPNA%2bVg&riu=http%3a%2f%2fseopic.699pic.com%2fphoto%2f50014%2f9021.jpg_wh1200.jpg&ehk=MTs%2biICdAdXvbOYNkToV9AsVYT1Z%2fkC9T3eH%2fCQSlq4%3d&risl=&pid=ImgRaw&r=0', altText: 'Image 2' },
   { id: 3, imageUrl: 'https://ts1.cn.mm.bing.net/th/id/R-C.27cc12852d74bd9f8b86285fb5645723?rik=NnLHyob2rqjoWw&riu=http%3a%2f%2fseopic.699pic.com%2fphoto%2f50127%2f2949.jpg_wh1200.jpg&ehk=OoCG2Q6HaRnNV8FKHgYH82oE%2fPKZ1cGLcRZ38AOcdoA%3d&risl=&pid=ImgRaw&r=0', altText: 'Image 3' },
   { id: 4, imageUrl: 'https://bpic.588ku.com/back_origin_min_pic/21/03/30/08b5c525d7ead8dfae119bbdffa9bc8c.jpg', altText: 'Image 4' },

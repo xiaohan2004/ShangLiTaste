@@ -67,7 +67,7 @@ import ImageCarousel from "@/components/ImageCarousel.vue"; // Import the api in
 
 // 轮播图数据
 const carouselItems = ref([
-  { id: 1, imageUrl: 'https://ts1.cn.mm.bing.net/th/id/R-C.b4b94294fe8c65f40a05456fffcd6ab6?rik=6XICa5xrDuEwQA&riu=http%3a%2f%2fseopic.699pic.com%2fphoto%2f50099%2f7147.jpg_wh1200.jpg&ehk=fku5yLw06akkKP24OeNLwAr6%2bFoETtralLaKQVDf0so%3d&risl=&pid=ImgRaw&r=0', altText: 'Image 1' },
+  { id: 1, imageUrl: 'https://shanglixiaohan.oss-cn-shanghai.aliyuncs.com/shanglitaste/c7598c6f-e7d3-44a7-8b1b-11ab2f4b375f.jpg', altText: 'Image 1' },
   { id: 2, imageUrl: 'https://ts1.cn.mm.bing.net/th/id/R-C.2bc9c86f9a188e5c0975bbfb94cf766b?rik=qimcHt%2bIJ6jMFw&riu=http%3a%2f%2fn.sinaimg.cn%2fsinacn10114%2f680%2fw900h580%2f20190408%2fe954-hvhrcxn1100903.jpg&ehk=wnBXHeiqmFpFY%2bL74MlA2EYHsF370Ecp05z2jXMWPbQ%3d&risl=&pid=ImgRaw&r=0', altText: 'Image 2' },
   { id: 3, imageUrl: 'https://n.sinaimg.cn/sinacn10121/77/w2048h1229/20190908/fba6-iekuaqs5277126.jpg', altText: 'Image 3' },
   { id: 4, imageUrl: 'https://ts1.cn.mm.bing.net/th/id/R-C.c1cf981cc5dcb41b7f3e1771e9a10732?rik=AVWBHaSBFQON7g&riu=http%3a%2f%2fn.sinaimg.cn%2fsinacn10119%2f0%2fw2000h1200%2f20191031%2f5275-ihqyuym9420397.jpg&ehk=Bz4Ql73GN0vDatskuqYLxyudxmSqyebuRF0iJ4JYs7E%3d&risl=&pid=ImgRaw&r=0', altText: 'Image 4' },

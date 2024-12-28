@@ -132,7 +132,7 @@
               :on-change="handleNewDishImageChange"
           >
             <img v-if="newDish.img" :src="newDish.img" class="avatar">
-            <i v-else class="el-icon-plus avatar-uploader-icon"></i>
+            <img v-else src="https://pic.616pic.com/ys_bnew_img/00/46/51/qGEhxCt0bx.jpg" class="avatar-uploader-icon">
           </el-upload>
         </el-form-item>
       </el-form>
@@ -290,17 +290,36 @@ export default {
     async submitNewDish() {
       this.isLoading = true;
       try {
+        // Check if all required fields are filled
+        if (!this.newDish.name || this.newDish.name.trim() === '') {
+          throw new Error('菜品名称不能为空');
+        }
+        if (!this.newDish.categoryId) {
+          throw new Error('请选择菜品分类');
+        }
+        if (!this.newDish.price || this.newDish.price <= 0) {
+          throw new Error('请输入有效的菜品价格');
+        }
+        if (!this.newDish.description || this.newDish.description.trim() === '') {
+          throw new Error('菜品描述不能为空');
+        }
+        if (!this.newDish.img && !this.newDish.newImage) {
+          throw new Error('请上传菜品图片');
+        }
+
+        // If a new image is selected, upload it
         if (this.newDish.newImage) {
           const imageUrl = await this.uploadImage(this.newDish.newImage);
           this.newDish.img = imageUrl;
         }
 
+        // Submit the dish data
         const response = await api.post('/api/dishes', {
-          name: this.newDish.name,
+          name: this.newDish.name.trim(),
           img: this.newDish.img,
           categoryId: this.newDish.categoryId,
           price: this.newDish.price,
-          description: this.newDish.description,
+          description: this.newDish.description.trim(),
           isActive: this.newDish.enabled ? 1 : 0,
         });
 
@@ -309,11 +328,11 @@ export default {
           this.fetchDishData();
           ElMessage.success('创建菜品成功');
         } else {
-          throw new Error('Failed to create dish');
+          throw new Error(response.data.msg || '创建菜品失败');
         }
       } catch (error) {
         console.error('Error creating dish:', error);
-        ElMessage.error('创建菜品失败');
+        ElMessage.error(error.message || '创建菜品失败');
       } finally {
         this.isLoading = false;
       }
