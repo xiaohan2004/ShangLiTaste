@@ -8,13 +8,13 @@ ShangLiTaste是一个基于SpringBoot + Vue的餐饮管理系统。
 - Vue
 
 ## 项目设计
-![image](https://github.com/user-attachments/assets/c20248ac-3ad3-44b2-9efa-c94c72a71c9c)
-![image](https://github.com/user-attachments/assets/f001a7c9-b57e-4970-a621-e808722c9f46)
+![系统功能结构图.png](assets/%E7%B3%BB%E7%BB%9F%E5%8A%9F%E8%83%BD%E7%BB%93%E6%9E%84%E5%9B%BE.png)
+![系统功能表.png](assets/%E7%B3%BB%E7%BB%9F%E5%8A%9F%E8%83%BD%E8%A1%A8.png)
 
 
 ## 项目截图
-![image](https://github.com/user-attachments/assets/0d377963-e0c8-4a42-be3d-f191a945ec51)
-![image](https://github.com/user-attachments/assets/7c063f42-b500-4f36-8253-ff7d32ca12c5)
+![项目截图1.png](assets/%E9%A1%B9%E7%9B%AE%E6%88%AA%E5%9B%BE1.png)
+![项目截图2.png](assets/%E9%A1%B9%E7%9B%AE%E6%88%AA%E5%9B%BE2.png)
 
 
 ## 项目结构
